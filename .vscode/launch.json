@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug",
+            "cwd": "${workspaceFolder}",
+            "executable": "./build_F756ZG/STM32F756ZG.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "runToEntryPoint": "main",
+            "servertype": "openocd",
+            "device": "STM32F756ZG",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f7x.cfg"
+            ],
+            "svdFile": "${workspaceFolder}/STMDevices/STM32F756xx/STM32F756.svd",
+
+            "linux": {
+                "gdbPath": "/usr/bin/gdb-multiarch",
+                "serverpath": "/usr/bin/openocd"
+            },
+            "windows": {
+                "gdbPath": "${env:ARMGCC_DIR}/bin/arm-none-eabi-gdb.exe",
+                "serverpath": "${env:OPENOCD_DIR}/openocd.exe"
+            }
+        }
+    ]
+}

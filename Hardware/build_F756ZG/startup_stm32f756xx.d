@@ -1,0 +1,1 @@
+build_F756ZG/startup_stm32f756xx.o: STM32F756ZGT6/startup_stm32f756xx.s

@@ -1,0 +1,1316 @@
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"main.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/src/main.c"
+  20              		.section	.text.main,"ax",%progbits
+  21              		.align	1
+  22              		.global	main
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	main:
+  28              	.LFB141:
+   1:Core/src/main.c **** #include "init.h"
+   2:Core/src/main.c **** #include "process.h"
+   3:Core/src/main.c **** #include "app_data.h"
+   4:Core/src/main.c **** 
+   5:Core/src/main.c **** /**
+   6:Core/src/main.c ****  * @brief Точка входа.
+   7:Core/src/main.c ****  *
+   8:Core/src/main.c ****  * Общий поток:
+   9:Core/src/main.c ****  *   1. Инициализация периферии (порядок важен).
+  10:Core/src/main.c ****  *   2. В бесконечном цикле:
+  11:Core/src/main.c ****  *      - рисуем LED по текущему режиму и питанию;
+  12:Core/src/main.c ****  *      - вызываем mode_selection() — она решает, какая мощность н
+  13:Core/src/main.c ****  *      - пишем g_app.pulse в TIM1->CCR1;
+  14:Core/src/main.c ****  *      - уходим в __WFI до следующего прерывания.
+  15:Core/src/main.c ****  *
+  16:Core/src/main.c ****  * Всё "живое" обновление состояния (pir_state, btn_state, pir_time,
+  17:Core/src/main.c ****  * adc_buffer) делают прерывания: SysTick, EXTI, DMA. main только
+  18:Core/src/main.c ****  * потребляет результат. Это классический event-driven с sleep.
+  19:Core/src/main.c ****  */
+  20:Core/src/main.c **** int main(void)
+  21:Core/src/main.c **** {
+  29              		.loc 1 21 1 view -0
+  30              		.cfi_startproc
+  31              		@ Volatile: function does not return.
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34 0000 08B5     		push	{r3, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 3, -8
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 2
+
+
+  38              		.cfi_offset 14, -4
+  22:Core/src/main.c ****     /* Порядок инициализации критичен:
+  23:Core/src/main.c ****      *  - PSC/ARR нужны до TIM1_Config;
+  24:Core/src/main.c ****      *  - SystemClock — до SysTick (LOAD считается от 216 МГц);
+  25:Core/src/main.c ****      *  - TIM1_Config — до ADC1_DMA_Config (ADC триггерится от TIM1_TRGO). 
+  26:Core/src/main.c ****      */
+  27:Core/src/main.c ****     init_config.PSC = 216;
+  39              		.loc 1 27 5 view .LVU1
+  40              		.loc 1 27 21 is_stmt 0 view .LVU2
+  41 0002 3C4B     		ldr	r3, .L11
+  42 0004 D822     		movs	r2, #216
+  43 0006 5A80     		strh	r2, [r3, #2]	@ movhi
+  28:Core/src/main.c ****     init_config.ARR = 1000;
+  44              		.loc 1 28 5 is_stmt 1 view .LVU3
+  45              		.loc 1 28 21 is_stmt 0 view .LVU4
+  46 0008 4FF47A72 		mov	r2, #1000
+  47 000c 1A80     		strh	r2, [r3]	@ movhi
+  29:Core/src/main.c ****     SystemClock_Config();
+  48              		.loc 1 29 5 is_stmt 1 view .LVU5
+  49 000e FFF7FEFF 		bl	SystemClock_Config
+  50              	.LVL0:
+  30:Core/src/main.c ****     SysTick_Init_Config();
+  51              		.loc 1 30 5 view .LVU6
+  52 0012 FFF7FEFF 		bl	SysTick_Init_Config
+  53              	.LVL1:
+  31:Core/src/main.c ****     GPIO_Config();
+  54              		.loc 1 31 5 view .LVU7
+  55 0016 FFF7FEFF 		bl	GPIO_Config
+  56              	.LVL2:
+  32:Core/src/main.c ****     EXTI_Config();
+  57              		.loc 1 32 5 view .LVU8
+  58 001a FFF7FEFF 		bl	EXTI_Config
+  59              	.LVL3:
+  33:Core/src/main.c ****     TIM1_Config();
+  60              		.loc 1 33 5 view .LVU9
+  61 001e FFF7FEFF 		bl	TIM1_Config
+  62              	.LVL4:
+  34:Core/src/main.c ****     ADC1_DMA_Config();
+  63              		.loc 1 34 5 view .LVU10
+  64 0022 FFF7FEFF 		bl	ADC1_DMA_Config
+  65              	.LVL5:
+  66 0026 16E0     		b	.L2
+  67              	.L4:
+  35:Core/src/main.c **** 
+  36:Core/src/main.c ****     while (1)
+  37:Core/src/main.c ****     {
+  38:Core/src/main.c ****         if (g_app.pwr_status == PWR_ON)
+  39:Core/src/main.c ****         {
+  40:Core/src/main.c ****             /* --- Индикация режима: три LED на PC8..PC10. --- */
+  41:Core/src/main.c ****             if (g_app.mode_btn == STANDART)
+  42:Core/src/main.c ****             {
+  43:Core/src/main.c ****                 STANDART_LED_ON;
+  44:Core/src/main.c ****                 CONTIN_LED_OFF;
+  45:Core/src/main.c ****                 ENRG_SAV_LED_OFF;
+  46:Core/src/main.c ****             }
+  47:Core/src/main.c **** 
+  48:Core/src/main.c ****             if (g_app.mode_btn == CONTINUOUS)
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 3
+
+
+  68              		.loc 1 48 13 view .LVU11
+  69              		.loc 1 48 22 is_stmt 0 view .LVU12
+  70 0028 334B     		ldr	r3, .L11+4
+  71 002a 9B7A     		ldrb	r3, [r3, #10]	@ zero_extendqisi2
+  72              		.loc 1 48 16 view .LVU13
+  73 002c 012B     		cmp	r3, #1
+  74 002e 2BD0     		beq	.L9
+  75              	.L5:
+  49:Core/src/main.c ****             {
+  50:Core/src/main.c ****                 STANDART_LED_OFF;
+  51:Core/src/main.c ****                 CONTIN_LED_ON;
+  52:Core/src/main.c ****                 ENRG_SAV_LED_OFF;
+  53:Core/src/main.c ****             }
+  54:Core/src/main.c **** 
+  55:Core/src/main.c ****             if (g_app.mode_btn == ENERGY_SAVING)
+  76              		.loc 1 55 13 is_stmt 1 view .LVU14
+  77              		.loc 1 55 22 is_stmt 0 view .LVU15
+  78 0030 314B     		ldr	r3, .L11+4
+  79 0032 9B7A     		ldrb	r3, [r3, #10]	@ zero_extendqisi2
+  80              		.loc 1 55 16 view .LVU16
+  81 0034 022B     		cmp	r3, #2
+  82 0036 35D0     		beq	.L10
+  83              	.L6:
+  56:Core/src/main.c ****             {
+  57:Core/src/main.c ****                 STANDART_LED_OFF;
+  58:Core/src/main.c ****                 CONTIN_LED_OFF;
+  59:Core/src/main.c ****                 ENRG_SAV_LED_ON;
+  60:Core/src/main.c ****             }
+  61:Core/src/main.c **** 
+  62:Core/src/main.c ****             PWR_LED_OFF; // питание включено — индикатор "PWR" не го�
+  84              		.loc 1 62 13 is_stmt 1 view .LVU17
+  85 0038 304A     		ldr	r2, .L11+8
+  86 003a 9369     		ldr	r3, [r2, #24]
+  87 003c 43F08043 		orr	r3, r3, #1073741824
+  88 0040 9361     		str	r3, [r2, #24]
+  63:Core/src/main.c **** 
+  64:Core/src/main.c ****             /* --- Расчёт мощности: mode_selection читает PIR/потенцио�
+  65:Core/src/main.c ****              *     и выставляет g_app.pulse. --- */
+  66:Core/src/main.c ****             mode_selection(g_app.mode_btn);
+  89              		.loc 1 66 13 view .LVU18
+  90              		.loc 1 66 33 is_stmt 0 view .LVU19
+  91 0042 2D4C     		ldr	r4, .L11+4
+  92 0044 A07A     		ldrb	r0, [r4, #10]	@ zero_extendqisi2
+  93              		.loc 1 66 13 view .LVU20
+  94 0046 FFF7FEFF 		bl	mode_selection
+  95              	.LVL6:
+  67:Core/src/main.c **** 
+  68:Core/src/main.c ****             /* --- Записываем скважность в CCR1 (preload -> применитс
+  69:Core/src/main.c ****             TIM1->CCR1 = g_app.pulse;
+  96              		.loc 1 69 13 is_stmt 1 view .LVU21
+  97              		.loc 1 69 31 is_stmt 0 view .LVU22
+  98 004a 228A     		ldrh	r2, [r4, #16]
+  99              		.loc 1 69 24 view .LVU23
+ 100 004c 2C4B     		ldr	r3, .L11+12
+ 101 004e 5A63     		str	r2, [r3, #52]
+  70:Core/src/main.c **** 
+  71:Core/src/main.c ****             /* DSB — гарантия, что все записи в периферию заве�
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 4
+
+
+  72:Core/src/main.c ****              * до того, как ядро уснёт. Иначе есть теоретичес�
+  73:Core/src/main.c ****              * что WFI "обгонит" запись в CCR1. 
+  74:Core/src/main.c ****              */
+  75:Core/src/main.c ****             __DSB(); // Все pending-записи в память/периферию заверш
+ 102              		.loc 1 75 13 is_stmt 1 view .LVU24
+ 103              	.LBB6:
+ 104              	.LBI6:
+ 105              		.file 2 "CMSIS/Include/cmsis_gcc.h"
+   1:CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
+   2:CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
+   3:CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
+   4:CMSIS/Include/cmsis_gcc.h ****  * @version  V5.0.4
+   5:CMSIS/Include/cmsis_gcc.h ****  * @date     09. April 2018
+   6:CMSIS/Include/cmsis_gcc.h ****  ******************************************************************************/
+   7:CMSIS/Include/cmsis_gcc.h **** /*
+   8:CMSIS/Include/cmsis_gcc.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
+   9:CMSIS/Include/cmsis_gcc.h ****  *
+  10:CMSIS/Include/cmsis_gcc.h ****  * SPDX-License-Identifier: Apache-2.0
+  11:CMSIS/Include/cmsis_gcc.h ****  *
+  12:CMSIS/Include/cmsis_gcc.h ****  * Licensed under the Apache License, Version 2.0 (the License); you may
+  13:CMSIS/Include/cmsis_gcc.h ****  * not use this file except in compliance with the License.
+  14:CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
+  15:CMSIS/Include/cmsis_gcc.h ****  *
+  16:CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
+  17:CMSIS/Include/cmsis_gcc.h ****  *
+  18:CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
+  19:CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+  20:CMSIS/Include/cmsis_gcc.h ****  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  21:CMSIS/Include/cmsis_gcc.h ****  * See the License for the specific language governing permissions and
+  22:CMSIS/Include/cmsis_gcc.h ****  * limitations under the License.
+  23:CMSIS/Include/cmsis_gcc.h ****  */
+  24:CMSIS/Include/cmsis_gcc.h **** 
+  25:CMSIS/Include/cmsis_gcc.h **** #ifndef __CMSIS_GCC_H
+  26:CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_H
+  27:CMSIS/Include/cmsis_gcc.h **** 
+  28:CMSIS/Include/cmsis_gcc.h **** /* ignore some GCC warnings */
+  29:CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic push
+  30:CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wsign-conversion"
+  31:CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wconversion"
+  32:CMSIS/Include/cmsis_gcc.h **** #pragma GCC diagnostic ignored "-Wunused-parameter"
+  33:CMSIS/Include/cmsis_gcc.h **** 
+  34:CMSIS/Include/cmsis_gcc.h **** /* Fallback for __has_builtin */
+  35:CMSIS/Include/cmsis_gcc.h **** #ifndef __has_builtin
+  36:CMSIS/Include/cmsis_gcc.h ****   #define __has_builtin(x) (0)
+  37:CMSIS/Include/cmsis_gcc.h **** #endif
+  38:CMSIS/Include/cmsis_gcc.h **** 
+  39:CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
+  40:CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+  41:CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
+  42:CMSIS/Include/cmsis_gcc.h **** #endif
+  43:CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
+  44:CMSIS/Include/cmsis_gcc.h ****   #define __INLINE                               inline
+  45:CMSIS/Include/cmsis_gcc.h **** #endif
+  46:CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_INLINE
+  47:CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_INLINE                        static inline
+  48:CMSIS/Include/cmsis_gcc.h **** #endif
+  49:CMSIS/Include/cmsis_gcc.h **** #ifndef   __STATIC_FORCEINLINE                 
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 5
+
+
+  50:CMSIS/Include/cmsis_gcc.h ****   #define __STATIC_FORCEINLINE                   __attribute__((always_inline)) static inline
+  51:CMSIS/Include/cmsis_gcc.h **** #endif                                           
+  52:CMSIS/Include/cmsis_gcc.h **** #ifndef   __NO_RETURN
+  53:CMSIS/Include/cmsis_gcc.h ****   #define __NO_RETURN                            __attribute__((__noreturn__))
+  54:CMSIS/Include/cmsis_gcc.h **** #endif
+  55:CMSIS/Include/cmsis_gcc.h **** #ifndef   __USED
+  56:CMSIS/Include/cmsis_gcc.h ****   #define __USED                                 __attribute__((used))
+  57:CMSIS/Include/cmsis_gcc.h **** #endif
+  58:CMSIS/Include/cmsis_gcc.h **** #ifndef   __WEAK
+  59:CMSIS/Include/cmsis_gcc.h ****   #define __WEAK                                 __attribute__((weak))
+  60:CMSIS/Include/cmsis_gcc.h **** #endif
+  61:CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED
+  62:CMSIS/Include/cmsis_gcc.h ****   #define __PACKED                               __attribute__((packed, aligned(1)))
+  63:CMSIS/Include/cmsis_gcc.h **** #endif
+  64:CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_STRUCT
+  65:CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_STRUCT                        struct __attribute__((packed, aligned(1)))
+  66:CMSIS/Include/cmsis_gcc.h **** #endif
+  67:CMSIS/Include/cmsis_gcc.h **** #ifndef   __PACKED_UNION
+  68:CMSIS/Include/cmsis_gcc.h ****   #define __PACKED_UNION                         union __attribute__((packed, aligned(1)))
+  69:CMSIS/Include/cmsis_gcc.h **** #endif
+  70:CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32        /* deprecated */
+  71:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  72:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  73:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  74:CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
+  75:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  76:CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
+  77:CMSIS/Include/cmsis_gcc.h **** #endif
+  78:CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_WRITE
+  79:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  80:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  81:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  82:CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_WRITE { uint16_t v; };
+  83:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  84:CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_WRITE(addr, val)    (void)((((struct T_UINT16_WRITE *)(void *)(addr))-
+  85:CMSIS/Include/cmsis_gcc.h **** #endif
+  86:CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT16_READ
+  87:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  88:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  89:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  90:CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT16_READ { uint16_t v; };
+  91:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+  92:CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT16_READ(addr)          (((const struct T_UINT16_READ *)(const void *)(add
+  93:CMSIS/Include/cmsis_gcc.h **** #endif
+  94:CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_WRITE
+  95:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+  96:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+  97:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+  98:CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
+  99:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 100:CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
+ 101:CMSIS/Include/cmsis_gcc.h **** #endif
+ 102:CMSIS/Include/cmsis_gcc.h **** #ifndef   __UNALIGNED_UINT32_READ
+ 103:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
+ 104:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
+ 105:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ 106:CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_READ { uint32_t v; };
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 6
+
+
+ 107:CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
+ 108:CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_READ(addr)          (((const struct T_UINT32_READ *)(const void *)(add
+ 109:CMSIS/Include/cmsis_gcc.h **** #endif
+ 110:CMSIS/Include/cmsis_gcc.h **** #ifndef   __ALIGNED
+ 111:CMSIS/Include/cmsis_gcc.h ****   #define __ALIGNED(x)                           __attribute__((aligned(x)))
+ 112:CMSIS/Include/cmsis_gcc.h **** #endif
+ 113:CMSIS/Include/cmsis_gcc.h **** #ifndef   __RESTRICT
+ 114:CMSIS/Include/cmsis_gcc.h ****   #define __RESTRICT                             __restrict
+ 115:CMSIS/Include/cmsis_gcc.h **** #endif
+ 116:CMSIS/Include/cmsis_gcc.h **** 
+ 117:CMSIS/Include/cmsis_gcc.h **** 
+ 118:CMSIS/Include/cmsis_gcc.h **** /* ###########################  Core Function Access  ########################### */
+ 119:CMSIS/Include/cmsis_gcc.h **** /** \ingroup  CMSIS_Core_FunctionInterface
+ 120:CMSIS/Include/cmsis_gcc.h ****     \defgroup CMSIS_Core_RegAccFunctions CMSIS Core Register Access Functions
+ 121:CMSIS/Include/cmsis_gcc.h ****   @{
+ 122:CMSIS/Include/cmsis_gcc.h ****  */
+ 123:CMSIS/Include/cmsis_gcc.h **** 
+ 124:CMSIS/Include/cmsis_gcc.h **** /**
+ 125:CMSIS/Include/cmsis_gcc.h ****   \brief   Enable IRQ Interrupts
+ 126:CMSIS/Include/cmsis_gcc.h ****   \details Enables IRQ interrupts by clearing the I-bit in the CPSR.
+ 127:CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 128:CMSIS/Include/cmsis_gcc.h ****  */
+ 129:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
+ 130:CMSIS/Include/cmsis_gcc.h **** {
+ 131:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
+ 132:CMSIS/Include/cmsis_gcc.h **** }
+ 133:CMSIS/Include/cmsis_gcc.h **** 
+ 134:CMSIS/Include/cmsis_gcc.h **** 
+ 135:CMSIS/Include/cmsis_gcc.h **** /**
+ 136:CMSIS/Include/cmsis_gcc.h ****   \brief   Disable IRQ Interrupts
+ 137:CMSIS/Include/cmsis_gcc.h ****   \details Disables IRQ interrupts by setting the I-bit in the CPSR.
+ 138:CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 139:CMSIS/Include/cmsis_gcc.h ****  */
+ 140:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
+ 141:CMSIS/Include/cmsis_gcc.h **** {
+ 142:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
+ 143:CMSIS/Include/cmsis_gcc.h **** }
+ 144:CMSIS/Include/cmsis_gcc.h **** 
+ 145:CMSIS/Include/cmsis_gcc.h **** 
+ 146:CMSIS/Include/cmsis_gcc.h **** /**
+ 147:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register
+ 148:CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the Control Register.
+ 149:CMSIS/Include/cmsis_gcc.h ****   \return               Control Register value
+ 150:CMSIS/Include/cmsis_gcc.h ****  */
+ 151:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_CONTROL(void)
+ 152:CMSIS/Include/cmsis_gcc.h **** {
+ 153:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 154:CMSIS/Include/cmsis_gcc.h **** 
+ 155:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control" : "=r" (result) );
+ 156:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 157:CMSIS/Include/cmsis_gcc.h **** }
+ 158:CMSIS/Include/cmsis_gcc.h **** 
+ 159:CMSIS/Include/cmsis_gcc.h **** 
+ 160:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 161:CMSIS/Include/cmsis_gcc.h **** /**
+ 162:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Control Register (non-secure)
+ 163:CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the non-secure Control Register when in secure mode.
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 7
+
+
+ 164:CMSIS/Include/cmsis_gcc.h ****   \return               non-secure Control Register value
+ 165:CMSIS/Include/cmsis_gcc.h ****  */
+ 166:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_CONTROL_NS(void)
+ 167:CMSIS/Include/cmsis_gcc.h **** {
+ 168:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 169:CMSIS/Include/cmsis_gcc.h **** 
+ 170:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, control_ns" : "=r" (result) );
+ 171:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 172:CMSIS/Include/cmsis_gcc.h **** }
+ 173:CMSIS/Include/cmsis_gcc.h **** #endif
+ 174:CMSIS/Include/cmsis_gcc.h **** 
+ 175:CMSIS/Include/cmsis_gcc.h **** 
+ 176:CMSIS/Include/cmsis_gcc.h **** /**
+ 177:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register
+ 178:CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the Control Register.
+ 179:CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 180:CMSIS/Include/cmsis_gcc.h ****  */
+ 181:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_CONTROL(uint32_t control)
+ 182:CMSIS/Include/cmsis_gcc.h **** {
+ 183:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control, %0" : : "r" (control) : "memory");
+ 184:CMSIS/Include/cmsis_gcc.h **** }
+ 185:CMSIS/Include/cmsis_gcc.h **** 
+ 186:CMSIS/Include/cmsis_gcc.h **** 
+ 187:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 188:CMSIS/Include/cmsis_gcc.h **** /**
+ 189:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Control Register (non-secure)
+ 190:CMSIS/Include/cmsis_gcc.h ****   \details Writes the given value to the non-secure Control Register when in secure state.
+ 191:CMSIS/Include/cmsis_gcc.h ****   \param [in]    control  Control Register value to set
+ 192:CMSIS/Include/cmsis_gcc.h ****  */
+ 193:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_CONTROL_NS(uint32_t control)
+ 194:CMSIS/Include/cmsis_gcc.h **** {
+ 195:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR control_ns, %0" : : "r" (control) : "memory");
+ 196:CMSIS/Include/cmsis_gcc.h **** }
+ 197:CMSIS/Include/cmsis_gcc.h **** #endif
+ 198:CMSIS/Include/cmsis_gcc.h **** 
+ 199:CMSIS/Include/cmsis_gcc.h **** 
+ 200:CMSIS/Include/cmsis_gcc.h **** /**
+ 201:CMSIS/Include/cmsis_gcc.h ****   \brief   Get IPSR Register
+ 202:CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the IPSR Register.
+ 203:CMSIS/Include/cmsis_gcc.h ****   \return               IPSR Register value
+ 204:CMSIS/Include/cmsis_gcc.h ****  */
+ 205:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_IPSR(void)
+ 206:CMSIS/Include/cmsis_gcc.h **** {
+ 207:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 208:CMSIS/Include/cmsis_gcc.h **** 
+ 209:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, ipsr" : "=r" (result) );
+ 210:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 211:CMSIS/Include/cmsis_gcc.h **** }
+ 212:CMSIS/Include/cmsis_gcc.h **** 
+ 213:CMSIS/Include/cmsis_gcc.h **** 
+ 214:CMSIS/Include/cmsis_gcc.h **** /**
+ 215:CMSIS/Include/cmsis_gcc.h ****   \brief   Get APSR Register
+ 216:CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the APSR Register.
+ 217:CMSIS/Include/cmsis_gcc.h ****   \return               APSR Register value
+ 218:CMSIS/Include/cmsis_gcc.h ****  */
+ 219:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_APSR(void)
+ 220:CMSIS/Include/cmsis_gcc.h **** {
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 8
+
+
+ 221:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 222:CMSIS/Include/cmsis_gcc.h **** 
+ 223:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, apsr" : "=r" (result) );
+ 224:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 225:CMSIS/Include/cmsis_gcc.h **** }
+ 226:CMSIS/Include/cmsis_gcc.h **** 
+ 227:CMSIS/Include/cmsis_gcc.h **** 
+ 228:CMSIS/Include/cmsis_gcc.h **** /**
+ 229:CMSIS/Include/cmsis_gcc.h ****   \brief   Get xPSR Register
+ 230:CMSIS/Include/cmsis_gcc.h ****   \details Returns the content of the xPSR Register.
+ 231:CMSIS/Include/cmsis_gcc.h ****   \return               xPSR Register value
+ 232:CMSIS/Include/cmsis_gcc.h ****  */
+ 233:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_xPSR(void)
+ 234:CMSIS/Include/cmsis_gcc.h **** {
+ 235:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 236:CMSIS/Include/cmsis_gcc.h **** 
+ 237:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, xpsr" : "=r" (result) );
+ 238:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 239:CMSIS/Include/cmsis_gcc.h **** }
+ 240:CMSIS/Include/cmsis_gcc.h **** 
+ 241:CMSIS/Include/cmsis_gcc.h **** 
+ 242:CMSIS/Include/cmsis_gcc.h **** /**
+ 243:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer
+ 244:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer (PSP).
+ 245:CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 246:CMSIS/Include/cmsis_gcc.h ****  */
+ 247:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSP(void)
+ 248:CMSIS/Include/cmsis_gcc.h **** {
+ 249:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 250:CMSIS/Include/cmsis_gcc.h **** 
+ 251:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp"  : "=r" (result) );
+ 252:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 253:CMSIS/Include/cmsis_gcc.h **** }
+ 254:CMSIS/Include/cmsis_gcc.h **** 
+ 255:CMSIS/Include/cmsis_gcc.h **** 
+ 256:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 257:CMSIS/Include/cmsis_gcc.h **** /**
+ 258:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer (non-secure)
+ 259:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer (PSP) when in secure s
+ 260:CMSIS/Include/cmsis_gcc.h ****   \return               PSP Register value
+ 261:CMSIS/Include/cmsis_gcc.h ****  */
+ 262:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSP_NS(void)
+ 263:CMSIS/Include/cmsis_gcc.h **** {
+ 264:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 265:CMSIS/Include/cmsis_gcc.h **** 
+ 266:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psp_ns"  : "=r" (result) );
+ 267:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 268:CMSIS/Include/cmsis_gcc.h **** }
+ 269:CMSIS/Include/cmsis_gcc.h **** #endif
+ 270:CMSIS/Include/cmsis_gcc.h **** 
+ 271:CMSIS/Include/cmsis_gcc.h **** 
+ 272:CMSIS/Include/cmsis_gcc.h **** /**
+ 273:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer
+ 274:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer (PSP).
+ 275:CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 276:CMSIS/Include/cmsis_gcc.h ****  */
+ 277:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSP(uint32_t topOfProcStack)
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 9
+
+
+ 278:CMSIS/Include/cmsis_gcc.h **** {
+ 279:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp, %0" : : "r" (topOfProcStack) : );
+ 280:CMSIS/Include/cmsis_gcc.h **** }
+ 281:CMSIS/Include/cmsis_gcc.h **** 
+ 282:CMSIS/Include/cmsis_gcc.h **** 
+ 283:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 284:CMSIS/Include/cmsis_gcc.h **** /**
+ 285:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 286:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer (PSP) when in secure sta
+ 287:CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfProcStack  Process Stack Pointer value to set
+ 288:CMSIS/Include/cmsis_gcc.h ****  */
+ 289:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSP_NS(uint32_t topOfProcStack)
+ 290:CMSIS/Include/cmsis_gcc.h **** {
+ 291:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psp_ns, %0" : : "r" (topOfProcStack) : );
+ 292:CMSIS/Include/cmsis_gcc.h **** }
+ 293:CMSIS/Include/cmsis_gcc.h **** #endif
+ 294:CMSIS/Include/cmsis_gcc.h **** 
+ 295:CMSIS/Include/cmsis_gcc.h **** 
+ 296:CMSIS/Include/cmsis_gcc.h **** /**
+ 297:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer
+ 298:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer (MSP).
+ 299:CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 300:CMSIS/Include/cmsis_gcc.h ****  */
+ 301:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSP(void)
+ 302:CMSIS/Include/cmsis_gcc.h **** {
+ 303:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 304:CMSIS/Include/cmsis_gcc.h **** 
+ 305:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp" : "=r" (result) );
+ 306:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 307:CMSIS/Include/cmsis_gcc.h **** }
+ 308:CMSIS/Include/cmsis_gcc.h **** 
+ 309:CMSIS/Include/cmsis_gcc.h **** 
+ 310:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 311:CMSIS/Include/cmsis_gcc.h **** /**
+ 312:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer (non-secure)
+ 313:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer (MSP) when in secure stat
+ 314:CMSIS/Include/cmsis_gcc.h ****   \return               MSP Register value
+ 315:CMSIS/Include/cmsis_gcc.h ****  */
+ 316:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSP_NS(void)
+ 317:CMSIS/Include/cmsis_gcc.h **** {
+ 318:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 319:CMSIS/Include/cmsis_gcc.h **** 
+ 320:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msp_ns" : "=r" (result) );
+ 321:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 322:CMSIS/Include/cmsis_gcc.h **** }
+ 323:CMSIS/Include/cmsis_gcc.h **** #endif
+ 324:CMSIS/Include/cmsis_gcc.h **** 
+ 325:CMSIS/Include/cmsis_gcc.h **** 
+ 326:CMSIS/Include/cmsis_gcc.h **** /**
+ 327:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer
+ 328:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer (MSP).
+ 329:CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 330:CMSIS/Include/cmsis_gcc.h ****  */
+ 331:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSP(uint32_t topOfMainStack)
+ 332:CMSIS/Include/cmsis_gcc.h **** {
+ 333:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp, %0" : : "r" (topOfMainStack) : );
+ 334:CMSIS/Include/cmsis_gcc.h **** }
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 10
+
+
+ 335:CMSIS/Include/cmsis_gcc.h **** 
+ 336:CMSIS/Include/cmsis_gcc.h **** 
+ 337:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 338:CMSIS/Include/cmsis_gcc.h **** /**
+ 339:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer (non-secure)
+ 340:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer (MSP) when in secure state.
+ 341:CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfMainStack  Main Stack Pointer value to set
+ 342:CMSIS/Include/cmsis_gcc.h ****  */
+ 343:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSP_NS(uint32_t topOfMainStack)
+ 344:CMSIS/Include/cmsis_gcc.h **** {
+ 345:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msp_ns, %0" : : "r" (topOfMainStack) : );
+ 346:CMSIS/Include/cmsis_gcc.h **** }
+ 347:CMSIS/Include/cmsis_gcc.h **** #endif
+ 348:CMSIS/Include/cmsis_gcc.h **** 
+ 349:CMSIS/Include/cmsis_gcc.h **** 
+ 350:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 351:CMSIS/Include/cmsis_gcc.h **** /**
+ 352:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Stack Pointer (non-secure)
+ 353:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Stack Pointer (SP) when in secure state.
+ 354:CMSIS/Include/cmsis_gcc.h ****   \return               SP Register value
+ 355:CMSIS/Include/cmsis_gcc.h ****  */
+ 356:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_SP_NS(void)
+ 357:CMSIS/Include/cmsis_gcc.h **** {
+ 358:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 359:CMSIS/Include/cmsis_gcc.h **** 
+ 360:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, sp_ns" : "=r" (result) );
+ 361:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 362:CMSIS/Include/cmsis_gcc.h **** }
+ 363:CMSIS/Include/cmsis_gcc.h **** 
+ 364:CMSIS/Include/cmsis_gcc.h **** 
+ 365:CMSIS/Include/cmsis_gcc.h **** /**
+ 366:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Stack Pointer (non-secure)
+ 367:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Stack Pointer (SP) when in secure state.
+ 368:CMSIS/Include/cmsis_gcc.h ****   \param [in]    topOfStack  Stack Pointer value to set
+ 369:CMSIS/Include/cmsis_gcc.h ****  */
+ 370:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_SP_NS(uint32_t topOfStack)
+ 371:CMSIS/Include/cmsis_gcc.h **** {
+ 372:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR sp_ns, %0" : : "r" (topOfStack) : );
+ 373:CMSIS/Include/cmsis_gcc.h **** }
+ 374:CMSIS/Include/cmsis_gcc.h **** #endif
+ 375:CMSIS/Include/cmsis_gcc.h **** 
+ 376:CMSIS/Include/cmsis_gcc.h **** 
+ 377:CMSIS/Include/cmsis_gcc.h **** /**
+ 378:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask
+ 379:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the priority mask bit from the Priority Mask Register.
+ 380:CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 381:CMSIS/Include/cmsis_gcc.h ****  */
+ 382:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PRIMASK(void)
+ 383:CMSIS/Include/cmsis_gcc.h **** {
+ 384:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 385:CMSIS/Include/cmsis_gcc.h **** 
+ 386:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask" : "=r" (result) :: "memory");
+ 387:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 388:CMSIS/Include/cmsis_gcc.h **** }
+ 389:CMSIS/Include/cmsis_gcc.h **** 
+ 390:CMSIS/Include/cmsis_gcc.h **** 
+ 391:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 11
+
+
+ 392:CMSIS/Include/cmsis_gcc.h **** /**
+ 393:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Priority Mask (non-secure)
+ 394:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current state of the non-secure priority mask bit from the Priority Mask Reg
+ 395:CMSIS/Include/cmsis_gcc.h ****   \return               Priority Mask value
+ 396:CMSIS/Include/cmsis_gcc.h ****  */
+ 397:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PRIMASK_NS(void)
+ 398:CMSIS/Include/cmsis_gcc.h **** {
+ 399:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 400:CMSIS/Include/cmsis_gcc.h **** 
+ 401:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, primask_ns" : "=r" (result) :: "memory");
+ 402:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 403:CMSIS/Include/cmsis_gcc.h **** }
+ 404:CMSIS/Include/cmsis_gcc.h **** #endif
+ 405:CMSIS/Include/cmsis_gcc.h **** 
+ 406:CMSIS/Include/cmsis_gcc.h **** 
+ 407:CMSIS/Include/cmsis_gcc.h **** /**
+ 408:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask
+ 409:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Priority Mask Register.
+ 410:CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 411:CMSIS/Include/cmsis_gcc.h ****  */
+ 412:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PRIMASK(uint32_t priMask)
+ 413:CMSIS/Include/cmsis_gcc.h **** {
+ 414:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask, %0" : : "r" (priMask) : "memory");
+ 415:CMSIS/Include/cmsis_gcc.h **** }
+ 416:CMSIS/Include/cmsis_gcc.h **** 
+ 417:CMSIS/Include/cmsis_gcc.h **** 
+ 418:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 419:CMSIS/Include/cmsis_gcc.h **** /**
+ 420:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Priority Mask (non-secure)
+ 421:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Priority Mask Register when in secure state.
+ 422:CMSIS/Include/cmsis_gcc.h ****   \param [in]    priMask  Priority Mask
+ 423:CMSIS/Include/cmsis_gcc.h ****  */
+ 424:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PRIMASK_NS(uint32_t priMask)
+ 425:CMSIS/Include/cmsis_gcc.h **** {
+ 426:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR primask_ns, %0" : : "r" (priMask) : "memory");
+ 427:CMSIS/Include/cmsis_gcc.h **** }
+ 428:CMSIS/Include/cmsis_gcc.h **** #endif
+ 429:CMSIS/Include/cmsis_gcc.h **** 
+ 430:CMSIS/Include/cmsis_gcc.h **** 
+ 431:CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 432:CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 433:CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    )
+ 434:CMSIS/Include/cmsis_gcc.h **** /**
+ 435:CMSIS/Include/cmsis_gcc.h ****   \brief   Enable FIQ
+ 436:CMSIS/Include/cmsis_gcc.h ****   \details Enables FIQ interrupts by clearing the F-bit in the CPSR.
+ 437:CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ 438:CMSIS/Include/cmsis_gcc.h ****  */
+ 439:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_fault_irq(void)
+ 440:CMSIS/Include/cmsis_gcc.h **** {
+ 441:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie f" : : : "memory");
+ 442:CMSIS/Include/cmsis_gcc.h **** }
+ 443:CMSIS/Include/cmsis_gcc.h **** 
+ 444:CMSIS/Include/cmsis_gcc.h **** 
+ 445:CMSIS/Include/cmsis_gcc.h **** /**
+ 446:CMSIS/Include/cmsis_gcc.h ****   \brief   Disable FIQ
+ 447:CMSIS/Include/cmsis_gcc.h ****   \details Disables FIQ interrupts by setting the F-bit in the CPSR.
+ 448:CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 12
+
+
+ 449:CMSIS/Include/cmsis_gcc.h ****  */
+ 450:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_fault_irq(void)
+ 451:CMSIS/Include/cmsis_gcc.h **** {
+ 452:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid f" : : : "memory");
+ 453:CMSIS/Include/cmsis_gcc.h **** }
+ 454:CMSIS/Include/cmsis_gcc.h **** 
+ 455:CMSIS/Include/cmsis_gcc.h **** 
+ 456:CMSIS/Include/cmsis_gcc.h **** /**
+ 457:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority
+ 458:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Base Priority register.
+ 459:CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 460:CMSIS/Include/cmsis_gcc.h ****  */
+ 461:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_BASEPRI(void)
+ 462:CMSIS/Include/cmsis_gcc.h **** {
+ 463:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 464:CMSIS/Include/cmsis_gcc.h **** 
+ 465:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri" : "=r" (result) );
+ 466:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 467:CMSIS/Include/cmsis_gcc.h **** }
+ 468:CMSIS/Include/cmsis_gcc.h **** 
+ 469:CMSIS/Include/cmsis_gcc.h **** 
+ 470:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 471:CMSIS/Include/cmsis_gcc.h **** /**
+ 472:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Base Priority (non-secure)
+ 473:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Base Priority register when in secure state.
+ 474:CMSIS/Include/cmsis_gcc.h ****   \return               Base Priority register value
+ 475:CMSIS/Include/cmsis_gcc.h ****  */
+ 476:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_BASEPRI_NS(void)
+ 477:CMSIS/Include/cmsis_gcc.h **** {
+ 478:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 479:CMSIS/Include/cmsis_gcc.h **** 
+ 480:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, basepri_ns" : "=r" (result) );
+ 481:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 482:CMSIS/Include/cmsis_gcc.h **** }
+ 483:CMSIS/Include/cmsis_gcc.h **** #endif
+ 484:CMSIS/Include/cmsis_gcc.h **** 
+ 485:CMSIS/Include/cmsis_gcc.h **** 
+ 486:CMSIS/Include/cmsis_gcc.h **** /**
+ 487:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority
+ 488:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register.
+ 489:CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 490:CMSIS/Include/cmsis_gcc.h ****  */
+ 491:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI(uint32_t basePri)
+ 492:CMSIS/Include/cmsis_gcc.h **** {
+ 493:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri, %0" : : "r" (basePri) : "memory");
+ 494:CMSIS/Include/cmsis_gcc.h **** }
+ 495:CMSIS/Include/cmsis_gcc.h **** 
+ 496:CMSIS/Include/cmsis_gcc.h **** 
+ 497:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 498:CMSIS/Include/cmsis_gcc.h **** /**
+ 499:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority (non-secure)
+ 500:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Base Priority register when in secure state.
+ 501:CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 502:CMSIS/Include/cmsis_gcc.h ****  */
+ 503:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_BASEPRI_NS(uint32_t basePri)
+ 504:CMSIS/Include/cmsis_gcc.h **** {
+ 505:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_ns, %0" : : "r" (basePri) : "memory");
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 13
+
+
+ 506:CMSIS/Include/cmsis_gcc.h **** }
+ 507:CMSIS/Include/cmsis_gcc.h **** #endif
+ 508:CMSIS/Include/cmsis_gcc.h **** 
+ 509:CMSIS/Include/cmsis_gcc.h **** 
+ 510:CMSIS/Include/cmsis_gcc.h **** /**
+ 511:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Base Priority with condition
+ 512:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Base Priority register only if BASEPRI masking is disable
+ 513:CMSIS/Include/cmsis_gcc.h ****            or the new value increases the BASEPRI priority level.
+ 514:CMSIS/Include/cmsis_gcc.h ****   \param [in]    basePri  Base Priority value to set
+ 515:CMSIS/Include/cmsis_gcc.h ****  */
+ 516:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_BASEPRI_MAX(uint32_t basePri)
+ 517:CMSIS/Include/cmsis_gcc.h **** {
+ 518:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR basepri_max, %0" : : "r" (basePri) : "memory");
+ 519:CMSIS/Include/cmsis_gcc.h **** }
+ 520:CMSIS/Include/cmsis_gcc.h **** 
+ 521:CMSIS/Include/cmsis_gcc.h **** 
+ 522:CMSIS/Include/cmsis_gcc.h **** /**
+ 523:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask
+ 524:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Fault Mask register.
+ 525:CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 526:CMSIS/Include/cmsis_gcc.h ****  */
+ 527:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FAULTMASK(void)
+ 528:CMSIS/Include/cmsis_gcc.h **** {
+ 529:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 530:CMSIS/Include/cmsis_gcc.h **** 
+ 531:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask" : "=r" (result) );
+ 532:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 533:CMSIS/Include/cmsis_gcc.h **** }
+ 534:CMSIS/Include/cmsis_gcc.h **** 
+ 535:CMSIS/Include/cmsis_gcc.h **** 
+ 536:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 537:CMSIS/Include/cmsis_gcc.h **** /**
+ 538:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Fault Mask (non-secure)
+ 539:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Fault Mask register when in secure state.
+ 540:CMSIS/Include/cmsis_gcc.h ****   \return               Fault Mask register value
+ 541:CMSIS/Include/cmsis_gcc.h ****  */
+ 542:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_FAULTMASK_NS(void)
+ 543:CMSIS/Include/cmsis_gcc.h **** {
+ 544:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 545:CMSIS/Include/cmsis_gcc.h **** 
+ 546:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, faultmask_ns" : "=r" (result) );
+ 547:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 548:CMSIS/Include/cmsis_gcc.h **** }
+ 549:CMSIS/Include/cmsis_gcc.h **** #endif
+ 550:CMSIS/Include/cmsis_gcc.h **** 
+ 551:CMSIS/Include/cmsis_gcc.h **** 
+ 552:CMSIS/Include/cmsis_gcc.h **** /**
+ 553:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask
+ 554:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Fault Mask register.
+ 555:CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 556:CMSIS/Include/cmsis_gcc.h ****  */
+ 557:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FAULTMASK(uint32_t faultMask)
+ 558:CMSIS/Include/cmsis_gcc.h **** {
+ 559:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask, %0" : : "r" (faultMask) : "memory");
+ 560:CMSIS/Include/cmsis_gcc.h **** }
+ 561:CMSIS/Include/cmsis_gcc.h **** 
+ 562:CMSIS/Include/cmsis_gcc.h **** 
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 14
+
+
+ 563:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE ) && (__ARM_FEATURE_CMSE == 3))
+ 564:CMSIS/Include/cmsis_gcc.h **** /**
+ 565:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Fault Mask (non-secure)
+ 566:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Fault Mask register when in secure state.
+ 567:CMSIS/Include/cmsis_gcc.h ****   \param [in]    faultMask  Fault Mask value to set
+ 568:CMSIS/Include/cmsis_gcc.h ****  */
+ 569:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_FAULTMASK_NS(uint32_t faultMask)
+ 570:CMSIS/Include/cmsis_gcc.h **** {
+ 571:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR faultmask_ns, %0" : : "r" (faultMask) : "memory");
+ 572:CMSIS/Include/cmsis_gcc.h **** }
+ 573:CMSIS/Include/cmsis_gcc.h **** #endif
+ 574:CMSIS/Include/cmsis_gcc.h **** 
+ 575:CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_7M__      ) && (__ARM_ARCH_7M__      == 1)) || \
+ 576:CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_7EM__     ) && (__ARM_ARCH_7EM__     == 1)) || \
+ 577:CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1))    ) */
+ 578:CMSIS/Include/cmsis_gcc.h **** 
+ 579:CMSIS/Include/cmsis_gcc.h **** 
+ 580:CMSIS/Include/cmsis_gcc.h **** #if ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ 581:CMSIS/Include/cmsis_gcc.h ****      (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    )
+ 582:CMSIS/Include/cmsis_gcc.h **** 
+ 583:CMSIS/Include/cmsis_gcc.h **** /**
+ 584:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit
+ 585:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 586:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ 587:CMSIS/Include/cmsis_gcc.h ****   mode.
+ 588:CMSIS/Include/cmsis_gcc.h ****   
+ 589:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Process Stack Pointer Limit (PSPLIM).
+ 590:CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 591:CMSIS/Include/cmsis_gcc.h ****  */
+ 592:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_PSPLIM(void)
+ 593:CMSIS/Include/cmsis_gcc.h **** {
+ 594:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 595:CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 596:CMSIS/Include/cmsis_gcc.h ****     // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 597:CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 598:CMSIS/Include/cmsis_gcc.h **** #else
+ 599:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 600:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim"  : "=r" (result) );
+ 601:CMSIS/Include/cmsis_gcc.h ****   return result;
+ 602:CMSIS/Include/cmsis_gcc.h **** #endif
+ 603:CMSIS/Include/cmsis_gcc.h **** }
+ 604:CMSIS/Include/cmsis_gcc.h **** 
+ 605:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE) && (__ARM_FEATURE_CMSE == 3))
+ 606:CMSIS/Include/cmsis_gcc.h **** /**
+ 607:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Process Stack Pointer Limit (non-secure)
+ 608:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 609:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ 610:CMSIS/Include/cmsis_gcc.h **** 
+ 611:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Process Stack Pointer Limit (PSPLIM) when in
+ 612:CMSIS/Include/cmsis_gcc.h ****   \return               PSPLIM Register value
+ 613:CMSIS/Include/cmsis_gcc.h ****  */
+ 614:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_PSPLIM_NS(void)
+ 615:CMSIS/Include/cmsis_gcc.h **** {
+ 616:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 617:CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 618:CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 619:CMSIS/Include/cmsis_gcc.h **** #else
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 15
+
+
+ 620:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 621:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, psplim_ns"  : "=r" (result) );
+ 622:CMSIS/Include/cmsis_gcc.h ****   return result;
+ 623:CMSIS/Include/cmsis_gcc.h **** #endif
+ 624:CMSIS/Include/cmsis_gcc.h **** }
+ 625:CMSIS/Include/cmsis_gcc.h **** #endif
+ 626:CMSIS/Include/cmsis_gcc.h **** 
+ 627:CMSIS/Include/cmsis_gcc.h **** 
+ 628:CMSIS/Include/cmsis_gcc.h **** /**
+ 629:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer Limit
+ 630:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 631:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 632:CMSIS/Include/cmsis_gcc.h ****   mode.
+ 633:CMSIS/Include/cmsis_gcc.h ****   
+ 634:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Process Stack Pointer Limit (PSPLIM).
+ 635:CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 636:CMSIS/Include/cmsis_gcc.h ****  */
+ 637:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_PSPLIM(uint32_t ProcStackPtrLimit)
+ 638:CMSIS/Include/cmsis_gcc.h **** {
+ 639:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 640:CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 641:CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 642:CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 643:CMSIS/Include/cmsis_gcc.h **** #else
+ 644:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim, %0" : : "r" (ProcStackPtrLimit));
+ 645:CMSIS/Include/cmsis_gcc.h **** #endif
+ 646:CMSIS/Include/cmsis_gcc.h **** }
+ 647:CMSIS/Include/cmsis_gcc.h **** 
+ 648:CMSIS/Include/cmsis_gcc.h **** 
+ 649:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 650:CMSIS/Include/cmsis_gcc.h **** /**
+ 651:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Process Stack Pointer (non-secure)
+ 652:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 653:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 654:CMSIS/Include/cmsis_gcc.h **** 
+ 655:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Process Stack Pointer Limit (PSPLIM) when in s
+ 656:CMSIS/Include/cmsis_gcc.h ****   \param [in]    ProcStackPtrLimit  Process Stack Pointer Limit value to set
+ 657:CMSIS/Include/cmsis_gcc.h ****  */
+ 658:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_PSPLIM_NS(uint32_t ProcStackPtrLimit)
+ 659:CMSIS/Include/cmsis_gcc.h **** {
+ 660:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 661:CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure PSPLIM is RAZ/WI
+ 662:CMSIS/Include/cmsis_gcc.h ****   (void)ProcStackPtrLimit;
+ 663:CMSIS/Include/cmsis_gcc.h **** #else
+ 664:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR psplim_ns, %0\n" : : "r" (ProcStackPtrLimit));
+ 665:CMSIS/Include/cmsis_gcc.h **** #endif
+ 666:CMSIS/Include/cmsis_gcc.h **** }
+ 667:CMSIS/Include/cmsis_gcc.h **** #endif
+ 668:CMSIS/Include/cmsis_gcc.h **** 
+ 669:CMSIS/Include/cmsis_gcc.h **** 
+ 670:CMSIS/Include/cmsis_gcc.h **** /**
+ 671:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit
+ 672:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 673:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always in non-secure
+ 674:CMSIS/Include/cmsis_gcc.h ****   mode.
+ 675:CMSIS/Include/cmsis_gcc.h **** 
+ 676:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Main Stack Pointer Limit (MSPLIM).
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 16
+
+
+ 677:CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ 678:CMSIS/Include/cmsis_gcc.h ****  */
+ 679:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_MSPLIM(void)
+ 680:CMSIS/Include/cmsis_gcc.h **** {
+ 681:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 682:CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 683:CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 684:CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 685:CMSIS/Include/cmsis_gcc.h **** #else
+ 686:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 687:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim" : "=r" (result) );
+ 688:CMSIS/Include/cmsis_gcc.h ****   return result;
+ 689:CMSIS/Include/cmsis_gcc.h **** #endif
+ 690:CMSIS/Include/cmsis_gcc.h **** }
+ 691:CMSIS/Include/cmsis_gcc.h **** 
+ 692:CMSIS/Include/cmsis_gcc.h **** 
+ 693:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 694:CMSIS/Include/cmsis_gcc.h **** /**
+ 695:CMSIS/Include/cmsis_gcc.h ****   \brief   Get Main Stack Pointer Limit (non-secure)
+ 696:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 697:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence zero is returned always.
+ 698:CMSIS/Include/cmsis_gcc.h **** 
+ 699:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the non-secure Main Stack Pointer Limit(MSPLIM) when in sec
+ 700:CMSIS/Include/cmsis_gcc.h ****   \return               MSPLIM Register value
+ 701:CMSIS/Include/cmsis_gcc.h ****  */
+ 702:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __TZ_get_MSPLIM_NS(void)
+ 703:CMSIS/Include/cmsis_gcc.h **** {
+ 704:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 705:CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 706:CMSIS/Include/cmsis_gcc.h ****   return 0U;
+ 707:CMSIS/Include/cmsis_gcc.h **** #else
+ 708:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 709:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MRS %0, msplim_ns" : "=r" (result) );
+ 710:CMSIS/Include/cmsis_gcc.h ****   return result;
+ 711:CMSIS/Include/cmsis_gcc.h **** #endif
+ 712:CMSIS/Include/cmsis_gcc.h **** }
+ 713:CMSIS/Include/cmsis_gcc.h **** #endif
+ 714:CMSIS/Include/cmsis_gcc.h **** 
+ 715:CMSIS/Include/cmsis_gcc.h **** 
+ 716:CMSIS/Include/cmsis_gcc.h **** /**
+ 717:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit
+ 718:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 719:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored in non-secure
+ 720:CMSIS/Include/cmsis_gcc.h ****   mode.
+ 721:CMSIS/Include/cmsis_gcc.h **** 
+ 722:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Main Stack Pointer Limit (MSPLIM).
+ 723:CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer Limit value to set
+ 724:CMSIS/Include/cmsis_gcc.h ****  */
+ 725:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_MSPLIM(uint32_t MainStackPtrLimit)
+ 726:CMSIS/Include/cmsis_gcc.h **** {
+ 727:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) && \
+ 728:CMSIS/Include/cmsis_gcc.h ****     (!defined (__ARM_FEATURE_CMSE) || (__ARM_FEATURE_CMSE < 3)))
+ 729:CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 730:CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 731:CMSIS/Include/cmsis_gcc.h **** #else
+ 732:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim, %0" : : "r" (MainStackPtrLimit));
+ 733:CMSIS/Include/cmsis_gcc.h **** #endif
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 17
+
+
+ 734:CMSIS/Include/cmsis_gcc.h **** }
+ 735:CMSIS/Include/cmsis_gcc.h **** 
+ 736:CMSIS/Include/cmsis_gcc.h **** 
+ 737:CMSIS/Include/cmsis_gcc.h **** #if (defined (__ARM_FEATURE_CMSE  ) && (__ARM_FEATURE_CMSE   == 3))
+ 738:CMSIS/Include/cmsis_gcc.h **** /**
+ 739:CMSIS/Include/cmsis_gcc.h ****   \brief   Set Main Stack Pointer Limit (non-secure)
+ 740:CMSIS/Include/cmsis_gcc.h ****   Devices without ARMv8-M Main Extensions (i.e. Cortex-M23) lack the non-secure
+ 741:CMSIS/Include/cmsis_gcc.h ****   Stack Pointer Limit register hence the write is silently ignored.
+ 742:CMSIS/Include/cmsis_gcc.h **** 
+ 743:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the non-secure Main Stack Pointer Limit (MSPLIM) when in secu
+ 744:CMSIS/Include/cmsis_gcc.h ****   \param [in]    MainStackPtrLimit  Main Stack Pointer value to set
+ 745:CMSIS/Include/cmsis_gcc.h ****  */
+ 746:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __TZ_set_MSPLIM_NS(uint32_t MainStackPtrLimit)
+ 747:CMSIS/Include/cmsis_gcc.h **** {
+ 748:CMSIS/Include/cmsis_gcc.h **** #if (!(defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)))
+ 749:CMSIS/Include/cmsis_gcc.h ****   // without main extensions, the non-secure MSPLIM is RAZ/WI
+ 750:CMSIS/Include/cmsis_gcc.h ****   (void)MainStackPtrLimit;
+ 751:CMSIS/Include/cmsis_gcc.h **** #else
+ 752:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("MSR msplim_ns, %0" : : "r" (MainStackPtrLimit));
+ 753:CMSIS/Include/cmsis_gcc.h **** #endif
+ 754:CMSIS/Include/cmsis_gcc.h **** }
+ 755:CMSIS/Include/cmsis_gcc.h **** #endif
+ 756:CMSIS/Include/cmsis_gcc.h **** 
+ 757:CMSIS/Include/cmsis_gcc.h **** #endif /* ((defined (__ARM_ARCH_8M_MAIN__ ) && (__ARM_ARCH_8M_MAIN__ == 1)) || \
+ 758:CMSIS/Include/cmsis_gcc.h ****            (defined (__ARM_ARCH_8M_BASE__ ) && (__ARM_ARCH_8M_BASE__ == 1))    ) */
+ 759:CMSIS/Include/cmsis_gcc.h **** 
+ 760:CMSIS/Include/cmsis_gcc.h **** 
+ 761:CMSIS/Include/cmsis_gcc.h **** /**
+ 762:CMSIS/Include/cmsis_gcc.h ****   \brief   Get FPSCR
+ 763:CMSIS/Include/cmsis_gcc.h ****   \details Returns the current value of the Floating Point Status/Control register.
+ 764:CMSIS/Include/cmsis_gcc.h ****   \return               Floating Point Status/Control register value
+ 765:CMSIS/Include/cmsis_gcc.h ****  */
+ 766:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE uint32_t __get_FPSCR(void)
+ 767:CMSIS/Include/cmsis_gcc.h **** {
+ 768:CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 769:CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 770:CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_get_fpscr) 
+ 771:CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 772:CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 773:CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 774:CMSIS/Include/cmsis_gcc.h ****   return __builtin_arm_get_fpscr();
+ 775:CMSIS/Include/cmsis_gcc.h **** #else
+ 776:CMSIS/Include/cmsis_gcc.h ****   uint32_t result;
+ 777:CMSIS/Include/cmsis_gcc.h **** 
+ 778:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMRS %0, fpscr" : "=r" (result) );
+ 779:CMSIS/Include/cmsis_gcc.h ****   return(result);
+ 780:CMSIS/Include/cmsis_gcc.h **** #endif
+ 781:CMSIS/Include/cmsis_gcc.h **** #else
+ 782:CMSIS/Include/cmsis_gcc.h ****   return(0U);
+ 783:CMSIS/Include/cmsis_gcc.h **** #endif
+ 784:CMSIS/Include/cmsis_gcc.h **** }
+ 785:CMSIS/Include/cmsis_gcc.h **** 
+ 786:CMSIS/Include/cmsis_gcc.h **** 
+ 787:CMSIS/Include/cmsis_gcc.h **** /**
+ 788:CMSIS/Include/cmsis_gcc.h ****   \brief   Set FPSCR
+ 789:CMSIS/Include/cmsis_gcc.h ****   \details Assigns the given value to the Floating Point Status/Control register.
+ 790:CMSIS/Include/cmsis_gcc.h ****   \param [in]    fpscr  Floating Point Status/Control value to set
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 18
+
+
+ 791:CMSIS/Include/cmsis_gcc.h ****  */
+ 792:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __set_FPSCR(uint32_t fpscr)
+ 793:CMSIS/Include/cmsis_gcc.h **** {
+ 794:CMSIS/Include/cmsis_gcc.h **** #if ((defined (__FPU_PRESENT) && (__FPU_PRESENT == 1U)) && \
+ 795:CMSIS/Include/cmsis_gcc.h ****      (defined (__FPU_USED   ) && (__FPU_USED    == 1U))     )
+ 796:CMSIS/Include/cmsis_gcc.h **** #if __has_builtin(__builtin_arm_set_fpscr)
+ 797:CMSIS/Include/cmsis_gcc.h **** // Re-enable using built-in when GCC has been fixed
+ 798:CMSIS/Include/cmsis_gcc.h **** // || (__GNUC__ > 7) || (__GNUC__ == 7 && __GNUC_MINOR__ >= 2)
+ 799:CMSIS/Include/cmsis_gcc.h ****   /* see https://gcc.gnu.org/ml/gcc-patches/2017-04/msg00443.html */
+ 800:CMSIS/Include/cmsis_gcc.h ****   __builtin_arm_set_fpscr(fpscr);
+ 801:CMSIS/Include/cmsis_gcc.h **** #else
+ 802:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("VMSR fpscr, %0" : : "r" (fpscr) : "vfpcc", "memory");
+ 803:CMSIS/Include/cmsis_gcc.h **** #endif
+ 804:CMSIS/Include/cmsis_gcc.h **** #else
+ 805:CMSIS/Include/cmsis_gcc.h ****   (void)fpscr;
+ 806:CMSIS/Include/cmsis_gcc.h **** #endif
+ 807:CMSIS/Include/cmsis_gcc.h **** }
+ 808:CMSIS/Include/cmsis_gcc.h **** 
+ 809:CMSIS/Include/cmsis_gcc.h **** 
+ 810:CMSIS/Include/cmsis_gcc.h **** /*@} end of CMSIS_Core_RegAccFunctions */
+ 811:CMSIS/Include/cmsis_gcc.h **** 
+ 812:CMSIS/Include/cmsis_gcc.h **** 
+ 813:CMSIS/Include/cmsis_gcc.h **** /* ##########################  Core Instruction Access  ######################### */
+ 814:CMSIS/Include/cmsis_gcc.h **** /** \defgroup CMSIS_Core_InstructionInterface CMSIS Core Instruction Interface
+ 815:CMSIS/Include/cmsis_gcc.h ****   Access to dedicated instructions
+ 816:CMSIS/Include/cmsis_gcc.h ****   @{
+ 817:CMSIS/Include/cmsis_gcc.h **** */
+ 818:CMSIS/Include/cmsis_gcc.h **** 
+ 819:CMSIS/Include/cmsis_gcc.h **** /* Define macros for porting to both thumb1 and thumb2.
+ 820:CMSIS/Include/cmsis_gcc.h ****  * For thumb1, use low register (r0-r7), specified by constraint "l"
+ 821:CMSIS/Include/cmsis_gcc.h ****  * Otherwise, use general registers, specified by constraint "r" */
+ 822:CMSIS/Include/cmsis_gcc.h **** #if defined (__thumb__) && !defined (__thumb2__)
+ 823:CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=l" (r)
+ 824:CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+l" (r)
+ 825:CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "l" (r)
+ 826:CMSIS/Include/cmsis_gcc.h **** #else
+ 827:CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_OUT_REG(r) "=r" (r)
+ 828:CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_RW_REG(r) "+r" (r)
+ 829:CMSIS/Include/cmsis_gcc.h **** #define __CMSIS_GCC_USE_REG(r) "r" (r)
+ 830:CMSIS/Include/cmsis_gcc.h **** #endif
+ 831:CMSIS/Include/cmsis_gcc.h **** 
+ 832:CMSIS/Include/cmsis_gcc.h **** /**
+ 833:CMSIS/Include/cmsis_gcc.h ****   \brief   No Operation
+ 834:CMSIS/Include/cmsis_gcc.h ****   \details No Operation does nothing. This instruction can be used for code alignment purposes.
+ 835:CMSIS/Include/cmsis_gcc.h ****  */
+ 836:CMSIS/Include/cmsis_gcc.h **** #define __NOP()                             __ASM volatile ("nop")
+ 837:CMSIS/Include/cmsis_gcc.h **** 
+ 838:CMSIS/Include/cmsis_gcc.h **** /**
+ 839:CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Interrupt
+ 840:CMSIS/Include/cmsis_gcc.h ****   \details Wait For Interrupt is a hint instruction that suspends execution until one of a number o
+ 841:CMSIS/Include/cmsis_gcc.h ****  */
+ 842:CMSIS/Include/cmsis_gcc.h **** #define __WFI()                             __ASM volatile ("wfi")
+ 843:CMSIS/Include/cmsis_gcc.h **** 
+ 844:CMSIS/Include/cmsis_gcc.h **** 
+ 845:CMSIS/Include/cmsis_gcc.h **** /**
+ 846:CMSIS/Include/cmsis_gcc.h ****   \brief   Wait For Event
+ 847:CMSIS/Include/cmsis_gcc.h ****   \details Wait For Event is a hint instruction that permits the processor to enter
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 19
+
+
+ 848:CMSIS/Include/cmsis_gcc.h ****            a low-power state until one of a number of events occurs.
+ 849:CMSIS/Include/cmsis_gcc.h ****  */
+ 850:CMSIS/Include/cmsis_gcc.h **** #define __WFE()                             __ASM volatile ("wfe")
+ 851:CMSIS/Include/cmsis_gcc.h **** 
+ 852:CMSIS/Include/cmsis_gcc.h **** 
+ 853:CMSIS/Include/cmsis_gcc.h **** /**
+ 854:CMSIS/Include/cmsis_gcc.h ****   \brief   Send Event
+ 855:CMSIS/Include/cmsis_gcc.h ****   \details Send Event is a hint instruction. It causes an event to be signaled to the CPU.
+ 856:CMSIS/Include/cmsis_gcc.h ****  */
+ 857:CMSIS/Include/cmsis_gcc.h **** #define __SEV()                             __ASM volatile ("sev")
+ 858:CMSIS/Include/cmsis_gcc.h **** 
+ 859:CMSIS/Include/cmsis_gcc.h **** 
+ 860:CMSIS/Include/cmsis_gcc.h **** /**
+ 861:CMSIS/Include/cmsis_gcc.h ****   \brief   Instruction Synchronization Barrier
+ 862:CMSIS/Include/cmsis_gcc.h ****   \details Instruction Synchronization Barrier flushes the pipeline in the processor,
+ 863:CMSIS/Include/cmsis_gcc.h ****            so that all instructions following the ISB are fetched from cache or memory,
+ 864:CMSIS/Include/cmsis_gcc.h ****            after the instruction has been completed.
+ 865:CMSIS/Include/cmsis_gcc.h ****  */
+ 866:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __ISB(void)
+ 867:CMSIS/Include/cmsis_gcc.h **** {
+ 868:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("isb 0xF":::"memory");
+ 869:CMSIS/Include/cmsis_gcc.h **** }
+ 870:CMSIS/Include/cmsis_gcc.h **** 
+ 871:CMSIS/Include/cmsis_gcc.h **** 
+ 872:CMSIS/Include/cmsis_gcc.h **** /**
+ 873:CMSIS/Include/cmsis_gcc.h ****   \brief   Data Synchronization Barrier
+ 874:CMSIS/Include/cmsis_gcc.h ****   \details Acts as a special kind of Data Memory Barrier.
+ 875:CMSIS/Include/cmsis_gcc.h ****            It completes when all explicit memory accesses before this instruction complete.
+ 876:CMSIS/Include/cmsis_gcc.h ****  */
+ 877:CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __DSB(void)
+ 106              		.loc 2 877 27 view .LVU25
+ 107              	.LBB7:
+ 878:CMSIS/Include/cmsis_gcc.h **** {
+ 879:CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("dsb 0xF":::"memory");
+ 108              		.loc 2 879 3 view .LVU26
+ 109              		.syntax unified
+ 110              	@ 879 "CMSIS/Include/cmsis_gcc.h" 1
+ 111 0050 BFF34F8F 		dsb 0xF
+ 112              	@ 0 "" 2
+ 113              		.thumb
+ 114              		.syntax unified
+ 115              	.LBE7:
+ 116              	.LBE6:
+  76:Core/src/main.c ****             __WFI(); // уснуть до следующего прерывания (SysTick или
+ 117              		.loc 1 76 13 view .LVU27
+ 118              		.syntax unified
+ 119              	@ 76 "Core/src/main.c" 1
+ 120 0054 30BF     		wfi
+ 121              	@ 0 "" 2
+ 122              		.thumb
+ 123              		.syntax unified
+ 124              	.L2:
+  36:Core/src/main.c ****     {
+ 125              		.loc 1 36 5 view .LVU28
+  38:Core/src/main.c ****         {
+ 126              		.loc 1 38 9 view .LVU29
+  38:Core/src/main.c ****         {
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 20
+
+
+ 127              		.loc 1 38 18 is_stmt 0 view .LVU30
+ 128 0056 284B     		ldr	r3, .L11+4
+ 129 0058 9B7B     		ldrb	r3, [r3, #14]	@ zero_extendqisi2
+  38:Core/src/main.c ****         {
+ 130              		.loc 1 38 12 view .LVU31
+ 131 005a 002B     		cmp	r3, #0
+ 132 005c 30D1     		bne	.L3
+  41:Core/src/main.c ****             {
+ 133              		.loc 1 41 13 is_stmt 1 view .LVU32
+  41:Core/src/main.c ****             {
+ 134              		.loc 1 41 22 is_stmt 0 view .LVU33
+ 135 005e 264B     		ldr	r3, .L11+4
+ 136 0060 9B7A     		ldrb	r3, [r3, #10]	@ zero_extendqisi2
+  41:Core/src/main.c ****             {
+ 137              		.loc 1 41 16 view .LVU34
+ 138 0062 002B     		cmp	r3, #0
+ 139 0064 E0D1     		bne	.L4
+  43:Core/src/main.c ****                 CONTIN_LED_OFF;
+ 140              		.loc 1 43 17 is_stmt 1 view .LVU35
+ 141 0066 03F18043 		add	r3, r3, #1073741824
+ 142 006a 03F50233 		add	r3, r3, #133120
+ 143 006e 9A69     		ldr	r2, [r3, #24]
+ 144 0070 42F48072 		orr	r2, r2, #256
+ 145 0074 9A61     		str	r2, [r3, #24]
+  44:Core/src/main.c ****                 ENRG_SAV_LED_OFF;
+ 146              		.loc 1 44 17 view .LVU36
+ 147 0076 9A69     		ldr	r2, [r3, #24]
+ 148 0078 42F00072 		orr	r2, r2, #33554432
+ 149 007c 9A61     		str	r2, [r3, #24]
+  45:Core/src/main.c ****             }
+ 150              		.loc 1 45 17 view .LVU37
+ 151 007e 9A69     		ldr	r2, [r3, #24]
+ 152 0080 42F08062 		orr	r2, r2, #67108864
+ 153 0084 9A61     		str	r2, [r3, #24]
+ 154 0086 CFE7     		b	.L4
+ 155              	.L9:
+  50:Core/src/main.c ****                 CONTIN_LED_ON;
+ 156              		.loc 1 50 17 view .LVU38
+ 157 0088 1E4B     		ldr	r3, .L11+16
+ 158 008a 9A69     		ldr	r2, [r3, #24]
+ 159 008c 42F08072 		orr	r2, r2, #16777216
+ 160 0090 9A61     		str	r2, [r3, #24]
+  51:Core/src/main.c ****                 ENRG_SAV_LED_OFF;
+ 161              		.loc 1 51 17 view .LVU39
+ 162 0092 9A69     		ldr	r2, [r3, #24]
+ 163 0094 42F40072 		orr	r2, r2, #512
+ 164 0098 9A61     		str	r2, [r3, #24]
+  52:Core/src/main.c ****             }
+ 165              		.loc 1 52 17 view .LVU40
+ 166 009a 9A69     		ldr	r2, [r3, #24]
+ 167 009c 42F08062 		orr	r2, r2, #67108864
+ 168 00a0 9A61     		str	r2, [r3, #24]
+ 169 00a2 C5E7     		b	.L5
+ 170              	.L10:
+  57:Core/src/main.c ****                 CONTIN_LED_OFF;
+ 171              		.loc 1 57 17 view .LVU41
+ 172 00a4 174B     		ldr	r3, .L11+16
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 21
+
+
+ 173 00a6 9A69     		ldr	r2, [r3, #24]
+ 174 00a8 42F08072 		orr	r2, r2, #16777216
+ 175 00ac 9A61     		str	r2, [r3, #24]
+  58:Core/src/main.c ****                 ENRG_SAV_LED_ON;
+ 176              		.loc 1 58 17 view .LVU42
+ 177 00ae 9A69     		ldr	r2, [r3, #24]
+ 178 00b0 42F00072 		orr	r2, r2, #33554432
+ 179 00b4 9A61     		str	r2, [r3, #24]
+  59:Core/src/main.c ****             }
+ 180              		.loc 1 59 17 view .LVU43
+ 181 00b6 9A69     		ldr	r2, [r3, #24]
+ 182 00b8 42F48062 		orr	r2, r2, #1024
+ 183 00bc 9A61     		str	r2, [r3, #24]
+ 184 00be BBE7     		b	.L6
+ 185              	.L3:
+  77:Core/src/main.c ****         }
+  78:Core/src/main.c ****         else
+  79:Core/src/main.c ****         {
+  80:Core/src/main.c ****             /* --- PWR_OFF: гасим всё, что можно, кроме PWR_LED. --- */
+  81:Core/src/main.c ****             PWR_LED_ON;
+ 186              		.loc 1 81 13 view .LVU44
+ 187 00c0 0E4A     		ldr	r2, .L11+8
+ 188 00c2 9369     		ldr	r3, [r2, #24]
+ 189 00c4 43F48043 		orr	r3, r3, #16384
+ 190 00c8 9361     		str	r3, [r2, #24]
+  82:Core/src/main.c ****             STANDART_LED_OFF;
+ 191              		.loc 1 82 13 view .LVU45
+ 192 00ca 0E4B     		ldr	r3, .L11+16
+ 193 00cc 9A69     		ldr	r2, [r3, #24]
+ 194 00ce 42F08072 		orr	r2, r2, #16777216
+ 195 00d2 9A61     		str	r2, [r3, #24]
+  83:Core/src/main.c ****             CONTIN_LED_OFF;
+ 196              		.loc 1 83 13 view .LVU46
+ 197 00d4 9A69     		ldr	r2, [r3, #24]
+ 198 00d6 42F00072 		orr	r2, r2, #33554432
+ 199 00da 9A61     		str	r2, [r3, #24]
+  84:Core/src/main.c ****             ENRG_SAV_LED_OFF;
+ 200              		.loc 1 84 13 view .LVU47
+ 201 00dc 9A69     		ldr	r2, [r3, #24]
+ 202 00de 42F08062 		orr	r2, r2, #67108864
+ 203 00e2 9A61     		str	r2, [r3, #24]
+  85:Core/src/main.c ****             TIM1->CCR1 = 0;     // двигатель стоит
+ 204              		.loc 1 85 13 view .LVU48
+ 205              		.loc 1 85 24 is_stmt 0 view .LVU49
+ 206 00e4 A3F58433 		sub	r3, r3, #67584
+ 207 00e8 0022     		movs	r2, #0
+ 208 00ea 5A63     		str	r2, [r3, #52]
+  86:Core/src/main.c **** 
+  87:Core/src/main.c ****             __DSB(); // Все pending-записи в память/периферию заверш
+ 209              		.loc 1 87 13 is_stmt 1 view .LVU50
+ 210              	.LBB8:
+ 211              	.LBI8:
+ 877:CMSIS/Include/cmsis_gcc.h **** {
+ 212              		.loc 2 877 27 view .LVU51
+ 213              	.LBB9:
+ 214              		.loc 2 879 3 view .LVU52
+ 215              		.syntax unified
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 22
+
+
+ 216              	@ 879 "CMSIS/Include/cmsis_gcc.h" 1
+ 217 00ec BFF34F8F 		dsb 0xF
+ 218              	@ 0 "" 2
+ 219              		.thumb
+ 220              		.syntax unified
+ 221              	.LBE9:
+ 222              	.LBE8:
+  88:Core/src/main.c ****             __WFI(); // уснуть до следующего прерывания (SysTick или
+ 223              		.loc 1 88 13 view .LVU53
+ 224              		.syntax unified
+ 225              	@ 88 "Core/src/main.c" 1
+ 226 00f0 30BF     		wfi
+ 227              	@ 0 "" 2
+ 228              		.thumb
+ 229              		.syntax unified
+ 230 00f2 B0E7     		b	.L2
+ 231              	.L12:
+ 232              		.align	2
+ 233              	.L11:
+ 234 00f4 00000000 		.word	init_config
+ 235 00f8 00000000 		.word	g_app
+ 236 00fc 00040240 		.word	1073873920
+ 237 0100 00000140 		.word	1073807360
+ 238 0104 00080240 		.word	1073874944
+ 239              		.cfi_endproc
+ 240              	.LFE141:
+ 242              		.text
+ 243              	.Letext0:
+ 244              		.file 3 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/machine/_defau
+ 245              		.file 4 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/sys/_stdint.h"
+ 246              		.file 5 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 247              		.file 6 "Core/inc/app_data.h"
+ 248              		.file 7 "Core/inc/init.h"
+ 249              		.file 8 "Core/inc/process.h"
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s 			page 23
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s:21     .text.main:00000000 $t
+C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s:27     .text.main:00000000 main
+C:\Users\Asus\AppData\Local\Temp\ccRahd9f.s:234    .text.main:000000f4 $d
+
+UNDEFINED SYMBOLS
+SystemClock_Config
+SysTick_Init_Config
+GPIO_Config
+EXTI_Config
+TIM1_Config
+ADC1_DMA_Config
+mode_selection
+init_config
+g_app
