@@ -7,28 +7,6 @@
 #include "stm32f7xx.h"
 #include "stm32f756xx.h"
 
-/* ------------------------------------------------------------
- *  Макросы быстрого управления светодиодами через BSRR.
- *  BSRR = set/reset одним атомарным доступом:
- *    BSx -> установить пин, BRx -> сбросить пин.
- *  FIXME: сейчас используется `|=`, что подразумевает чтение BSRR.
- *  BSRR — write-only, читать его не нужно. Правильнее `=`:
- *      #define STANDART_LED_ON  (GPIOC->BSRR = GPIO_BSRR_BS8)
- * ------------------------------------------------------------ 
- */
-
- /* Индикаторы режимов на PC8..PC10. */
-#define STANDARD_LED_ON  (GPIOC->BSRR |= GPIO_BSRR_BS8)
-#define STANDARD_LED_OFF (GPIOC->BSRR |= GPIO_BSRR_BR8)
-#define CONTIN_LED_ON    (GPIOC->BSRR |= GPIO_BSRR_BS9)
-#define CONTIN_LED_OFF   (GPIOC->BSRR |= GPIO_BSRR_BR9)
-#define ENRG_SAV_LED_ON  (GPIOC->BSRR |= GPIO_BSRR_BS10)
-#define ENRG_SAV_LED_OFF (GPIOC->BSRR |= GPIO_BSRR_BR10)
-
-/* Индикатор питания на PB14. */
-#define PWR_LED_ON       (GPIOB->BSRR |= GPIO_BSRR_BS14)
-#define PWR_LED_OFF      (GPIOB->BSRR |= GPIO_BSRR_BR14)
-
 /* Инициализация — вызывается по порядку из main().
  * Порядок важен: SystemClock_Config должен быть до всего,
  * что зависит от частоты (SysTick, TIM, ADC). 

@@ -30,12 +30,6 @@
 #define BTN_DEBOUNCE_MS   20
 #define BTN_LONG_PRESS_MS 2000
 
-/* Время отсутствия пассажиров, после которого эскалатор переходит
- * в CHILL (пониженная скорость). По ТЗ — 2 секунды.
- * FIXME: в текущей версии 3000, а по заданию должно быть 2000. 
- */
-#define DETECTING_TIME    3000
-
 /* ============================================================
  *  ПЕРЕЧИСЛЕНИЯ (состояния системы)
  * ============================================================ */
@@ -46,39 +40,6 @@ typedef enum{
     CONTINUOUS,    // всегда фиксированная скорость (из потенциометра)
     ENERGY_SAVING, // всегда пониженная скорость (из потенциометра
 } G_Mode;          // Global system mode
-
-/* Питание двигателя (длинное нажатие кнопки режимов(РС13)). */
-typedef enum{
-    PWR_ON,        // ШИМ идёт, LED режима горит
-    PWR_OFF        // ШИМ = 0, горит только PWR_LED
-} PWR_Mode;
-
-/* "Сырой" статус PIR-датчика. Ставится в EXTI по фронту. */
-typedef enum{
-    NO_DETECTED,   // движения нет
-    DETECTED       // только что зафиксировано движение
-} PIR_Status;
-
-/* Логическое состояние эскалатора (получается из PIR_Status + таймера). */
-typedef enum{
-    WORK,          // есть люди -> полная скорость
-    CHILL          // людей нет дольше DETECTING_TIME -> экономия
-} PIR_State;
-
-/* Состояние кнопки настройки (PA4). Пока SETUP — читаем потенциометры. */
-typedef enum{
-    NO_SETUP,
-    SETUP
-} STP_mode;         // setup mode
-
-/* Конечный автомат обработки кнопки PC13.
- * Живёт целиком в SysTick_Handler + EXTI15_10_IRQHandler. 
- */
-typedef enum{ 
-    BTN_IDLE,       // ничего не происходит, ждём фронт на PC13
-    BTN_PRESSED,    // нажали, тикаем дебаунс и удержание
-    BTN_LONG_FIRED  // длинное нажатие уже отработано, ждём отпускания
-} BtnState;
 
 /* ============================================================
  *  СТРУКТУРЫ ДАННЫХ
@@ -93,28 +54,6 @@ typedef struct
 {
     /* --- снимок с АЦП (DMA пишет сюда, main читает) --- */
     volatile uint16_t   adc_buffer[ADC_BUF_LEN];
-
-    /*---Тайминги (счётчики мс, тикаются в SysTick) ---*/
-    volatile uint16_t   btn_debounce_ms;    // сколько мс кнопка стабильно нажата
-    volatile uint16_t   btn_hold_ms;        // сколько мс держим (для LONG)
-    volatile uint16_t   pir_time;           // сколько мс нет движения подряд
-
-    /* --- входы с кнопок/PIR (пишутся в EXTI, читаются в main) --- */
-    volatile G_Mode     mode_btn;           // текущий выбранный режим
-    volatile BtnState   btn_state;          // FSM кнопки PC13
-    volatile STP_mode   settings_btn;       // режим настройки (PA4)
-    volatile PIR_Status pir_sens;           // "сырой" статус PIR
-
-    /* --- выходы/состояние, которые пишет main, а читает SysTick --- */
-    volatile PWR_Mode   pwr_status;         // включено/выключено
-    volatile PIR_State  pir_state;          // WORK/CHILL
-
-    /* --- конфиг/уставки --- */
-             uint16_t   pulse;              // значение для TIM1->CCR1 (0..ARR-1)
-             float      filtered_ch[2];     // отфильтрованные значения АЦП по каналам
-
-    /*---Переменные для визуализации---*/
-             G_Mode     mode_display;       // Нужна для отображения в MCUViewer
 } AppData_t;
 
 /* Параметры таймера ШИМ. Заполняется до вызова TIM1_Config.
@@ -126,15 +65,7 @@ typedef struct
     volatile uint16_t   PSC;                // предделитель
 } InitConfig;
 
-/* Уставки скорости из потенциометров (в процентах, 0..100). */
-typedef struct{
-    volatile uint8_t    eng_pwr_cont_mode;      // для режима CONTINUOUS
-    volatile uint8_t    eng_pwr_enrg_save_mode; // для режима ENERGY_SAVING
-} EnginePwr;
-
 /* Единственные экземпляры — определены в app_data.c. */
 extern AppData_t        g_app; 
 extern InitConfig       init_config;
-extern EnginePwr        eng_pwr;
-
 #endif

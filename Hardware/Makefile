@@ -69,7 +69,6 @@ Core/src/main.c \
 Core/src/init.c \
 Core/src/it_handlers.c \
 Core/src/app_data.c \
-Core/src/process.c \
 
 # ASM sources
 ASM_SOURCES =  \
