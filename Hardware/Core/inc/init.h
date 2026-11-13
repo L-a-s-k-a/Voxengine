@@ -14,13 +14,12 @@
  *  FIXME: сейчас используется `|=`, что подразумевает чтение BSRR.
  *  BSRR — write-only, читать его не нужно. Правильнее `=`:
  *      #define STANDART_LED_ON  (GPIOC->BSRR = GPIO_BSRR_BS8)
- *  И опечатка STANDART -> STANDARD.
  * ------------------------------------------------------------ 
  */
 
  /* Индикаторы режимов на PC8..PC10. */
-#define STANDART_LED_ON  (GPIOC->BSRR |= GPIO_BSRR_BS8)
-#define STANDART_LED_OFF (GPIOC->BSRR |= GPIO_BSRR_BR8)
+#define STANDARD_LED_ON  (GPIOC->BSRR |= GPIO_BSRR_BS8)
+#define STANDARD_LED_OFF (GPIOC->BSRR |= GPIO_BSRR_BR8)
 #define CONTIN_LED_ON    (GPIOC->BSRR |= GPIO_BSRR_BS9)
 #define CONTIN_LED_OFF   (GPIOC->BSRR |= GPIO_BSRR_BR9)
 #define ENRG_SAV_LED_ON  (GPIOC->BSRR |= GPIO_BSRR_BS10)
