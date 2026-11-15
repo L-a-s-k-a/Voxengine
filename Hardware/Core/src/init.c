@@ -260,3 +260,4 @@ void ADC1_DMA_Config(void){
     ADC1->CR2 |= ADC_CR2_ADON;                  // ADC on without conversion
     for (volatile int i = 0; i < 1000; i++) {}  // tSTAB — пауза после ADON
 }
+

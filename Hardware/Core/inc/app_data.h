@@ -54,6 +54,8 @@ typedef struct
 {
     /* --- снимок с АЦП (DMA пишет сюда, main читает) --- */
     volatile uint16_t   adc_buffer[ADC_BUF_LEN];
+
+    volatile uint16_t   frame_buffer;
 } AppData_t;
 
 /* Параметры таймера ШИМ. Заполняется до вызова TIM1_Config.
@@ -68,4 +70,5 @@ typedef struct
 /* Единственные экземпляры — определены в app_data.c. */
 extern AppData_t        g_app; 
 extern InitConfig       init_config;
+
 #endif
