@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s 			page 1
+ARM GAS  /tmp/ccAwXiVB.s 			page 1
 
 
    1              		.cpu cortex-m7
@@ -30,13 +30,14 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s 			page 1
   28              	.LFB141:
    1:Core/src/main.c **** #include "init.h"
    2:Core/src/main.c **** #include "app_data.h"
-   3:Core/src/main.c **** 
-   4:Core/src/main.c **** /**
-   5:Core/src/main.c ****  * @brief Точка входа.
-   6:Core/src/main.c ****  */
-   7:Core/src/main.c **** int main(void)
-   8:Core/src/main.c **** {
-  29              		.loc 1 8 1 view -0
+   3:Core/src/main.c **** #include "spi.h"
+   4:Core/src/main.c **** 
+   5:Core/src/main.c **** /**
+   6:Core/src/main.c ****  * @brief Точка входа.
+   7:Core/src/main.c ****  */
+   8:Core/src/main.c **** int main(void)
+   9:Core/src/main.c **** {
+  29              		.loc 1 9 1 view -0
   30              		.cfi_startproc
   31              		@ Volatile: function does not return.
   32              		@ args = 0, pretend = 0, frame = 0
@@ -46,75 +47,98 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s 			page 1
   36              		.cfi_def_cfa_offset 8
   37              		.cfi_offset 3, -8
   38              		.cfi_offset 14, -4
-   9:Core/src/main.c ****     init_config.PSC = 216;
-  39              		.loc 1 9 5 view .LVU1
-  40              		.loc 1 9 21 is_stmt 0 view .LVU2
-  41 0002 094B     		ldr	r3, .L4
+  10:Core/src/main.c ****     init_config.PSC = 216;
+  39              		.loc 1 10 5 view .LVU1
+  40              		.loc 1 10 21 is_stmt 0 view .LVU2
+  41 0002 104B     		ldr	r3, .L5
   42 0004 D822     		movs	r2, #216
   43 0006 5A80     		strh	r2, [r3, #2]	@ movhi
-  10:Core/src/main.c ****     init_config.ARR = 1000;
-  44              		.loc 1 10 5 is_stmt 1 view .LVU3
-  45              		.loc 1 10 21 is_stmt 0 view .LVU4
+  11:Core/src/main.c ****     init_config.ARR = 1000;
+  44              		.loc 1 11 5 is_stmt 1 view .LVU3
+  45              		.loc 1 11 21 is_stmt 0 view .LVU4
   46 0008 4FF47A72 		mov	r2, #1000
   47 000c 1A80     		strh	r2, [r3]	@ movhi
-  11:Core/src/main.c ****     SystemClock_Config();
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s 			page 2
+ARM GAS  /tmp/ccAwXiVB.s 			page 2
 
 
-  48              		.loc 1 11 5 is_stmt 1 view .LVU5
+  12:Core/src/main.c ****     SystemClock_Config();
+  48              		.loc 1 12 5 is_stmt 1 view .LVU5
   49 000e FFF7FEFF 		bl	SystemClock_Config
   50              	.LVL0:
-  12:Core/src/main.c ****     SysTick_Init_Config();
-  51              		.loc 1 12 5 view .LVU6
+  13:Core/src/main.c ****     SysTick_Init_Config();
+  51              		.loc 1 13 5 view .LVU6
   52 0012 FFF7FEFF 		bl	SysTick_Init_Config
   53              	.LVL1:
-  13:Core/src/main.c ****     GPIO_Config();
-  54              		.loc 1 13 5 view .LVU7
+  14:Core/src/main.c ****     GPIO_Config();
+  54              		.loc 1 14 5 view .LVU7
   55 0016 FFF7FEFF 		bl	GPIO_Config
   56              	.LVL2:
-  14:Core/src/main.c ****     EXTI_Config();
-  57              		.loc 1 14 5 view .LVU8
+  15:Core/src/main.c ****     EXTI_Config();
+  57              		.loc 1 15 5 view .LVU8
   58 001a FFF7FEFF 		bl	EXTI_Config
   59              	.LVL3:
-  15:Core/src/main.c ****     TIM1_Config();
-  60              		.loc 1 15 5 view .LVU9
+  16:Core/src/main.c ****     TIM1_Config();
+  60              		.loc 1 16 5 view .LVU9
   61 001e FFF7FEFF 		bl	TIM1_Config
   62              	.LVL4:
-  16:Core/src/main.c ****     ADC1_DMA_Config();
-  63              		.loc 1 16 5 view .LVU10
+  17:Core/src/main.c ****     ADC1_DMA_Config();
+  63              		.loc 1 17 5 view .LVU10
   64 0022 FFF7FEFF 		bl	ADC1_DMA_Config
   65              	.LVL5:
-  66              	.L2:
-  17:Core/src/main.c **** 
-  18:Core/src/main.c ****     while (1)
-  67              		.loc 1 18 5 view .LVU11
-  19:Core/src/main.c ****     {
-  20:Core/src/main.c **** 
-  21:Core/src/main.c ****     }
-  68              		.loc 1 21 5 view .LVU12
-  18:Core/src/main.c ****     {
-  69              		.loc 1 18 11 view .LVU13
-  70 0026 FEE7     		b	.L2
-  71              	.L5:
-  72              		.align	2
-  73              	.L4:
-  74 0028 00000000 		.word	init_config
-  75              		.cfi_endproc
-  76              	.LFE141:
-  78              		.text
-  79              	.Letext0:
-  80              		.file 2 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/machine/_defau
-  81              		.file 3 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/sys/_stdint.h"
-  82              		.file 4 "Core/inc/app_data.h"
-  83              		.file 5 "Core/inc/init.h"
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s 			page 3
+  18:Core/src/main.c ****     SPI1_Init();
+  66              		.loc 1 18 5 view .LVU11
+  67 0026 FFF7FEFF 		bl	SPI1_Init
+  68              	.LVL6:
+  69              	.L2:
+  19:Core/src/main.c **** 
+  20:Core/src/main.c ****     while (1)
+  70              		.loc 1 20 5 view .LVU12
+  21:Core/src/main.c ****     {
+  22:Core/src/main.c ****         if(g_app.global_tick_count > 1000){
+  71              		.loc 1 22 9 view .LVU13
+  72              		.loc 1 22 17 is_stmt 0 view .LVU14
+  73 002a 074B     		ldr	r3, .L5+4
+  74 002c DB88     		ldrh	r3, [r3, #6]
+  75 002e 9BB2     		uxth	r3, r3
+  76              		.loc 1 22 11 view .LVU15
+  77 0030 B3F57A7F 		cmp	r3, #1000
+  78 0034 F9D9     		bls	.L2
+  23:Core/src/main.c ****             SPI1_TransmitByte(240);
+  79              		.loc 1 23 13 is_stmt 1 view .LVU16
+  80 0036 F020     		movs	r0, #240
+  81 0038 FFF7FEFF 		bl	SPI1_TransmitByte
+  82              	.LVL7:
+  24:Core/src/main.c ****             g_app.global_tick_count = 0;
+  83              		.loc 1 24 13 view .LVU17
+  84              		.loc 1 24 37 is_stmt 0 view .LVU18
+  85 003c 024B     		ldr	r3, .L5+4
+  86 003e 0022     		movs	r2, #0
+  87 0040 DA80     		strh	r2, [r3, #6]	@ movhi
+  88 0042 F2E7     		b	.L2
+  89              	.L6:
+  90              		.align	2
+  91              	.L5:
+ARM GAS  /tmp/ccAwXiVB.s 			page 3
+
+
+  92 0044 00000000 		.word	init_config
+  93 0048 00000000 		.word	g_app
+  94              		.cfi_endproc
+  95              	.LFE141:
+  97              		.text
+  98              	.Letext0:
+  99              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 100              		.file 3 "Core/inc/app_data.h"
+ 101              		.file 4 "Core/inc/spi.h"
+ 102              		.file 5 "Core/inc/init.h"
+ARM GAS  /tmp/ccAwXiVB.s 			page 4
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 main.c
-C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s:21     .text.main:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s:27     .text.main:00000000 main
-C:\Users\Asus\AppData\Local\Temp\ccFt45Tv.s:74     .text.main:00000028 $d
+     /tmp/ccAwXiVB.s:21     .text.main:00000000 $t
+     /tmp/ccAwXiVB.s:27     .text.main:00000000 main
+     /tmp/ccAwXiVB.s:92     .text.main:00000044 $d
 
 UNDEFINED SYMBOLS
 SystemClock_Config
@@ -123,4 +147,7 @@ GPIO_Config
 EXTI_Config
 TIM1_Config
 ADC1_DMA_Config
+SPI1_Init
+SPI1_TransmitByte
 init_config
+g_app

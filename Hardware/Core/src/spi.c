@@ -27,7 +27,11 @@ void SPI1_Init(void)
     GPIOA->AFR[0] &= ~(GPIO_AFRL_AFRL5_Msk | GPIO_AFRL_AFRL7_Msk);
     GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFRL5_Pos) |
                      (5U << GPIO_AFRL_AFRL7_Pos);
-    
+    GPIOB->MODER &= ~GPIO_MODER_MODER5;
+    GPIOB->MODER |= (2U << GPIO_MODER_MODER5_Pos);
+    GPIOB->AFR[0] &= ~GPIO_AFRL_AFRL5_Msk;
+    GPIOB->AFR[0] |= (5U << GPIO_AFRL_AFRL5_Pos);
+
     /* Enable SPI1 peripheral clock */
     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
 
@@ -35,7 +39,7 @@ void SPI1_Init(void)
     DMA2_Stream3->PAR = (uint32_t)&(SPI1->DR); // Периферийный адрес (регистр данных)
     DMA2_Stream3->M0AR = (uint32_t)g_app.frame_buffer; // Адрес буфера в памяти
     DMA2_Stream3->NDTR = DMA_SPI_BUFFER_SIZE; // Количество байт для передачи
-    DMA2_Stream3->CR = DMA_SxCR_CHSEL_0 | // Channel 3 (пример)
+    DMA2_Stream3->CR = DMA_SxCR_CHSEL_0 | DMA_SxCR_CHSEL_1 | // Channel 3 (пример)
                         DMA_SxCR_MSIZE_0 | // Memory size 8-bit
                         DMA_SxCR_PSIZE_0 | // Peripheral size 8-bit
                         DMA_SxCR_MINC |    // Memory increment mode
@@ -64,12 +68,51 @@ void SPI1_Init(void)
         SPI_CR1_MSTR |
         (6U << SPI_CR1_BR_Pos) | // BR = 110 / 128
         SPI_CR1_SSM |
-        SPI_CR1_SSI |
+        SPI_CR1_SSI ;
         SPI_CR1_BIDIMODE |
         SPI_CR1_BIDIOE;
 
     SPI1->CR2 |= SPI_CR2_TXDMAEN; // Enable TX DMA
 
+    /* For test with Arduino slave */
+    SPI1->CR1 &= ~SPI_CR1_LSBFIRST;
+    // SPI1->CR1 |= SPI_CR1_CPOL | SPI_CR1_CPHA;
+
     /* 10. Enable SPI1 */
     SPI1->CR1 |= SPI_CR1_SPE;
+}
+
+void SPI1_TransmitByte(uint8_t data)
+{
+    /* Wait until transmit buffer is empty */
+
+    while (!(SPI1->SR & SPI_SR_TXE))
+    {
+    }
+
+    /* Write data */
+
+    *(__IO uint8_t *)&SPI1->DR = data;
+
+    /* Wait until transmission is complete */
+
+    while (SPI1->SR & SPI_SR_BSY)
+    {
+    }
+}
+
+void SPI1_TransmitBuffer(
+    const uint8_t *data,
+    uint32_t length
+)
+{
+    if ((data == 0) || (length == 0U))
+    {
+        return;
+    }
+
+    while (length--)
+    {
+        SPI1_TransmitByte(*data++);
+    }
 }

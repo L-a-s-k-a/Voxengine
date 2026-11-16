@@ -8,7 +8,7 @@ static G_Mode next_mode(G_Mode m);
  */
 void SysTick_Handler(void)
 {
-   
+   g_app.global_tick_count++;
 }
 
 /**

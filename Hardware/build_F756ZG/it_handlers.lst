@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 1
+ARM GAS  /tmp/ccxDbRhl.s 			page 1
 
 
    1              		.cpu cortex-m7
@@ -43,24 +43,37 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 1
   31              		@ args = 0, pretend = 0, frame = 0
   32              		@ frame_needed = 0, uses_anonymous_args = 0
   33              		@ link register save eliminated.
-  11:Core/src/it_handlers.c ****    
+  11:Core/src/it_handlers.c ****    g_app.global_tick_count++;
+  34              		.loc 1 11 4 view .LVU1
+  35              		.loc 1 11 9 is_stmt 0 view .LVU2
+  36 0000 034A     		ldr	r2, .L2
+  37 0002 D388     		ldrh	r3, [r2, #6]
+  38 0004 9BB2     		uxth	r3, r3
+  39              		.loc 1 11 27 view .LVU3
+  40 0006 0133     		adds	r3, r3, #1
+  41 0008 9BB2     		uxth	r3, r3
+  42 000a D380     		strh	r3, [r2, #6]	@ movhi
   12:Core/src/it_handlers.c **** }
-  34              		.loc 1 12 1 view .LVU1
-  35 0000 7047     		bx	lr
-  36              		.cfi_endproc
-  37              	.LFE141:
-  39              		.section	.text.EXTI3_IRQHandler,"ax",%progbits
-  40              		.align	1
-  41              		.global	EXTI3_IRQHandler
-  42              		.syntax unified
-  43              		.thumb
-  44              		.thumb_func
-  46              	EXTI3_IRQHandler:
-  47              	.LFB142:
+  43              		.loc 1 12 1 view .LVU4
+  44 000c 7047     		bx	lr
+  45              	.L3:
+  46 000e 00BF     		.align	2
+ARM GAS  /tmp/ccxDbRhl.s 			page 2
+
+
+  47              	.L2:
+  48 0010 00000000 		.word	g_app
+  49              		.cfi_endproc
+  50              	.LFE141:
+  52              		.section	.text.EXTI3_IRQHandler,"ax",%progbits
+  53              		.align	1
+  54              		.global	EXTI3_IRQHandler
+  55              		.syntax unified
+  56              		.thumb
+  57              		.thumb_func
+  59              	EXTI3_IRQHandler:
+  60              	.LFB142:
   13:Core/src/it_handlers.c **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 2
-
-
   14:Core/src/it_handlers.c **** /**
   15:Core/src/it_handlers.c ****  * @brief EXTI3 — PIR-датчик (PB3). Сработал по RTSR или FTSR.
   16:Core/src/it_handlers.c ****  * Читаем реальный уровень IDR и превращаем в pir_sens.
@@ -68,34 +81,34 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 1
   18:Core/src/it_handlers.c ****  */
   19:Core/src/it_handlers.c **** void EXTI3_IRQHandler(void)
   20:Core/src/it_handlers.c **** {
-  48              		.loc 1 20 1 view -0
-  49              		.cfi_startproc
-  50              		@ args = 0, pretend = 0, frame = 0
-  51              		@ frame_needed = 0, uses_anonymous_args = 0
-  52              		@ link register save eliminated.
+  61              		.loc 1 20 1 is_stmt 1 view -0
+  62              		.cfi_startproc
+  63              		@ args = 0, pretend = 0, frame = 0
+  64              		@ frame_needed = 0, uses_anonymous_args = 0
+  65              		@ link register save eliminated.
   21:Core/src/it_handlers.c ****     EXTI->PR = EXTI_PR_PR3; // сброс pending
-  53              		.loc 1 21 5 view .LVU3
-  54              		.loc 1 21 14 is_stmt 0 view .LVU4
-  55 0000 014B     		ldr	r3, .L3
-  56 0002 0822     		movs	r2, #8
-  57 0004 5A61     		str	r2, [r3, #20]
+  66              		.loc 1 21 5 view .LVU6
+  67              		.loc 1 21 14 is_stmt 0 view .LVU7
+  68 0000 014B     		ldr	r3, .L5
+  69 0002 0822     		movs	r2, #8
+  70 0004 5A61     		str	r2, [r3, #20]
   22:Core/src/it_handlers.c **** }
-  58              		.loc 1 22 1 view .LVU5
-  59 0006 7047     		bx	lr
-  60              	.L4:
-  61              		.align	2
-  62              	.L3:
-  63 0008 003C0140 		.word	1073822720
-  64              		.cfi_endproc
-  65              	.LFE142:
-  67              		.section	.text.EXTI4_IRQHandler,"ax",%progbits
-  68              		.align	1
-  69              		.global	EXTI4_IRQHandler
-  70              		.syntax unified
-  71              		.thumb
-  72              		.thumb_func
-  74              	EXTI4_IRQHandler:
-  75              	.LFB143:
+  71              		.loc 1 22 1 view .LVU8
+  72 0006 7047     		bx	lr
+  73              	.L6:
+  74              		.align	2
+  75              	.L5:
+  76 0008 003C0140 		.word	1073822720
+  77              		.cfi_endproc
+  78              	.LFE142:
+  80              		.section	.text.EXTI4_IRQHandler,"ax",%progbits
+  81              		.align	1
+  82              		.global	EXTI4_IRQHandler
+  83              		.syntax unified
+  84              		.thumb
+  85              		.thumb_func
+  87              	EXTI4_IRQHandler:
+  88              	.LFB143:
   23:Core/src/it_handlers.c **** 
   24:Core/src/it_handlers.c **** /**
   25:Core/src/it_handlers.c ****  * @brief EXTI4 — кнопка SETUP (PA4).
@@ -105,37 +118,37 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 1
   29:Core/src/it_handlers.c ****  */
   30:Core/src/it_handlers.c **** void EXTI4_IRQHandler(void)
   31:Core/src/it_handlers.c **** {
-  76              		.loc 1 31 1 is_stmt 1 view -0
-  77              		.cfi_startproc
-  78              		@ args = 0, pretend = 0, frame = 0
-  79              		@ frame_needed = 0, uses_anonymous_args = 0
-  80              		@ link register save eliminated.
+ARM GAS  /tmp/ccxDbRhl.s 			page 3
+
+
+  89              		.loc 1 31 1 is_stmt 1 view -0
+  90              		.cfi_startproc
+  91              		@ args = 0, pretend = 0, frame = 0
+  92              		@ frame_needed = 0, uses_anonymous_args = 0
+  93              		@ link register save eliminated.
   32:Core/src/it_handlers.c ****     EXTI->PR = EXTI_PR_PR4;
-  81              		.loc 1 32 5 view .LVU7
-  82              		.loc 1 32 14 is_stmt 0 view .LVU8
-  83 0000 014B     		ldr	r3, .L6
-  84 0002 1022     		movs	r2, #16
-  85 0004 5A61     		str	r2, [r3, #20]
+  94              		.loc 1 32 5 view .LVU10
+  95              		.loc 1 32 14 is_stmt 0 view .LVU11
+  96 0000 014B     		ldr	r3, .L8
+  97 0002 1022     		movs	r2, #16
+  98 0004 5A61     		str	r2, [r3, #20]
   33:Core/src/it_handlers.c **** }
-  86              		.loc 1 33 1 view .LVU9
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 3
-
-
-  87 0006 7047     		bx	lr
-  88              	.L7:
-  89              		.align	2
-  90              	.L6:
-  91 0008 003C0140 		.word	1073822720
-  92              		.cfi_endproc
-  93              	.LFE143:
-  95              		.section	.text.EXTI15_10_IRQHandler,"ax",%progbits
-  96              		.align	1
-  97              		.global	EXTI15_10_IRQHandler
-  98              		.syntax unified
-  99              		.thumb
- 100              		.thumb_func
- 102              	EXTI15_10_IRQHandler:
- 103              	.LFB144:
+  99              		.loc 1 33 1 view .LVU12
+ 100 0006 7047     		bx	lr
+ 101              	.L9:
+ 102              		.align	2
+ 103              	.L8:
+ 104 0008 003C0140 		.word	1073822720
+ 105              		.cfi_endproc
+ 106              	.LFE143:
+ 108              		.section	.text.EXTI15_10_IRQHandler,"ax",%progbits
+ 109              		.align	1
+ 110              		.global	EXTI15_10_IRQHandler
+ 111              		.syntax unified
+ 112              		.thumb
+ 113              		.thumb_func
+ 115              	EXTI15_10_IRQHandler:
+ 116              	.LFB144:
   34:Core/src/it_handlers.c **** 
   35:Core/src/it_handlers.c **** /**
   36:Core/src/it_handlers.c ****  * @brief EXTI13 — кнопка PC13 (B1 на Nucleo).
@@ -145,60 +158,62 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 1
   40:Core/src/it_handlers.c ****  */
   41:Core/src/it_handlers.c **** void EXTI15_10_IRQHandler(void)
   42:Core/src/it_handlers.c **** {
- 104              		.loc 1 42 1 is_stmt 1 view -0
- 105              		.cfi_startproc
- 106              		@ args = 0, pretend = 0, frame = 0
- 107              		@ frame_needed = 0, uses_anonymous_args = 0
- 108              		@ link register save eliminated.
+ 117              		.loc 1 42 1 is_stmt 1 view -0
+ 118              		.cfi_startproc
+ 119              		@ args = 0, pretend = 0, frame = 0
+ 120              		@ frame_needed = 0, uses_anonymous_args = 0
+ 121              		@ link register save eliminated.
   43:Core/src/it_handlers.c ****     if (EXTI->PR & EXTI_PR_PR13)
- 109              		.loc 1 43 5 view .LVU11
- 110              		.loc 1 43 13 is_stmt 0 view .LVU12
- 111 0000 044B     		ldr	r3, .L10
- 112 0002 5B69     		ldr	r3, [r3, #20]
- 113              		.loc 1 43 8 view .LVU13
- 114 0004 13F4005F 		tst	r3, #8192
- 115 0008 03D0     		beq	.L8
+ 122              		.loc 1 43 5 view .LVU14
+ 123              		.loc 1 43 13 is_stmt 0 view .LVU15
+ 124 0000 044B     		ldr	r3, .L12
+ 125 0002 5B69     		ldr	r3, [r3, #20]
+ 126              		.loc 1 43 8 view .LVU16
+ 127 0004 13F4005F 		tst	r3, #8192
+ 128 0008 03D0     		beq	.L10
   44:Core/src/it_handlers.c ****     {
   45:Core/src/it_handlers.c ****         EXTI->PR = EXTI_PR_PR13;    // сброс pending
- 116              		.loc 1 45 9 is_stmt 1 view .LVU14
- 117              		.loc 1 45 18 is_stmt 0 view .LVU15
- 118 000a 024B     		ldr	r3, .L10
- 119 000c 4FF40052 		mov	r2, #8192
- 120 0010 5A61     		str	r2, [r3, #20]
- 121              	.L8:
+ 129              		.loc 1 45 9 is_stmt 1 view .LVU17
+ 130              		.loc 1 45 18 is_stmt 0 view .LVU18
+ 131 000a 024B     		ldr	r3, .L12
+ 132 000c 4FF40052 		mov	r2, #8192
+ 133 0010 5A61     		str	r2, [r3, #20]
+ARM GAS  /tmp/ccxDbRhl.s 			page 4
+
+
+ 134              	.L10:
   46:Core/src/it_handlers.c ****     }
   47:Core/src/it_handlers.c **** }
- 122              		.loc 1 47 1 view .LVU16
- 123 0012 7047     		bx	lr
- 124              	.L11:
- 125              		.align	2
- 126              	.L10:
- 127 0014 003C0140 		.word	1073822720
- 128              		.cfi_endproc
- 129              	.LFE144:
- 131              		.text
- 132              	.Letext0:
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 4
-
-
- 133              		.file 2 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/machine/_defau
- 134              		.file 3 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/sys/_stdint.h"
- 135              		.file 4 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s 			page 5
+ 135              		.loc 1 47 1 view .LVU19
+ 136 0012 7047     		bx	lr
+ 137              	.L13:
+ 138              		.align	2
+ 139              	.L12:
+ 140 0014 003C0140 		.word	1073822720
+ 141              		.cfi_endproc
+ 142              	.LFE144:
+ 144              		.text
+ 145              	.Letext0:
+ 146              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 147              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 148              		.file 4 "Core/inc/app_data.h"
+ARM GAS  /tmp/ccxDbRhl.s 			page 5
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 it_handlers.c
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:21     .text.SysTick_Handler:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:27     .text.SysTick_Handler:00000000 SysTick_Handler
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:40     .text.EXTI3_IRQHandler:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:46     .text.EXTI3_IRQHandler:00000000 EXTI3_IRQHandler
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:63     .text.EXTI3_IRQHandler:00000008 $d
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:68     .text.EXTI4_IRQHandler:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:74     .text.EXTI4_IRQHandler:00000000 EXTI4_IRQHandler
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:91     .text.EXTI4_IRQHandler:00000008 $d
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:96     .text.EXTI15_10_IRQHandler:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:102    .text.EXTI15_10_IRQHandler:00000000 EXTI15_10_IRQHandler
-C:\Users\Asus\AppData\Local\Temp\ccr8KpTT.s:127    .text.EXTI15_10_IRQHandler:00000014 $d
+     /tmp/ccxDbRhl.s:21     .text.SysTick_Handler:00000000 $t
+     /tmp/ccxDbRhl.s:27     .text.SysTick_Handler:00000000 SysTick_Handler
+     /tmp/ccxDbRhl.s:48     .text.SysTick_Handler:00000010 $d
+     /tmp/ccxDbRhl.s:53     .text.EXTI3_IRQHandler:00000000 $t
+     /tmp/ccxDbRhl.s:59     .text.EXTI3_IRQHandler:00000000 EXTI3_IRQHandler
+     /tmp/ccxDbRhl.s:76     .text.EXTI3_IRQHandler:00000008 $d
+     /tmp/ccxDbRhl.s:81     .text.EXTI4_IRQHandler:00000000 $t
+     /tmp/ccxDbRhl.s:87     .text.EXTI4_IRQHandler:00000000 EXTI4_IRQHandler
+     /tmp/ccxDbRhl.s:104    .text.EXTI4_IRQHandler:00000008 $d
+     /tmp/ccxDbRhl.s:109    .text.EXTI15_10_IRQHandler:00000000 $t
+     /tmp/ccxDbRhl.s:115    .text.EXTI15_10_IRQHandler:00000000 EXTI15_10_IRQHandler
+     /tmp/ccxDbRhl.s:140    .text.EXTI15_10_IRQHandler:00000014 $d
 
-NO UNDEFINED SYMBOLS
+UNDEFINED SYMBOLS
+g_app

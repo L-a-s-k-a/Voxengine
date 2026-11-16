@@ -56,6 +56,8 @@ typedef struct
     volatile uint16_t   adc_buffer[ADC_BUF_LEN];
 
     volatile uint16_t   frame_buffer;
+
+    volatile uint16_t   global_tick_count; // Временная переменная
 } AppData_t;
 
 /* Параметры таймера ШИМ. Заполняется до вызова TIM1_Config.

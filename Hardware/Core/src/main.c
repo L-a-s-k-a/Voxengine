@@ -1,5 +1,6 @@
 #include "init.h"
 #include "app_data.h"
+#include "spi.h"
 
 /**
  * @brief Точка входа.
@@ -14,9 +15,13 @@ int main(void)
     EXTI_Config();
     TIM1_Config();
     ADC1_DMA_Config();
+    SPI1_Init();
 
     while (1)
     {
-
+        if(g_app.global_tick_count > 1000){
+            SPI1_TransmitByte(240);
+            g_app.global_tick_count = 0;
+        } 
     }
 }

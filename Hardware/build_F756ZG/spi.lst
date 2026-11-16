@@ -1,0 +1,451 @@
+ARM GAS  /tmp/ccYoQpfy.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"spi.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/src/spi.c"
+  20              		.section	.text.SPI1_Init,"ax",%progbits
+  21              		.align	1
+  22              		.global	SPI1_Init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	SPI1_Init:
+  28              	.LFB141:
+   1:Core/src/spi.c **** #include "spi.h"
+   2:Core/src/spi.c **** #include "app_data.h"
+   3:Core/src/spi.c **** 
+   4:Core/src/spi.c **** #define DMA_SPI_BUFFER_SIZE 2
+   5:Core/src/spi.c **** 
+   6:Core/src/spi.c **** /*
+   7:Core/src/spi.c ****  * SPI1:
+   8:Core/src/spi.c ****  * PA5 -> SCK
+   9:Core/src/spi.c ****  * PA7 -> MOSI
+  10:Core/src/spi.c ****  *
+  11:Core/src/spi.c ****  * SPI Mode 0
+  12:Core/src/spi.c ****  * Master
+  13:Core/src/spi.c ****  * 8-bit
+  14:Core/src/spi.c ****  * MSB First
+  15:Core/src/spi.c ****  * 1-line TX mode
+  16:Core/src/spi.c ****  */
+  17:Core/src/spi.c **** 
+  18:Core/src/spi.c **** void SPI1_Init(void)
+  19:Core/src/spi.c **** {
+  29              		.loc 1 19 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  20:Core/src/spi.c ****     /* Enable GPIOA clock */
+  21:Core/src/spi.c ****     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+  34              		.loc 1 21 5 view .LVU1
+  35              		.loc 1 21 8 is_stmt 0 view .LVU2
+  36 0000 294A     		ldr	r2, .L2
+  37 0002 136B     		ldr	r3, [r2, #48]
+ARM GAS  /tmp/ccYoQpfy.s 			page 2
+
+
+  38              		.loc 1 21 18 view .LVU3
+  39 0004 43F00103 		orr	r3, r3, #1
+  40 0008 1363     		str	r3, [r2, #48]
+  22:Core/src/spi.c **** 
+  23:Core/src/spi.c ****     /* 2. Configure PA5 and PA7 as Alternate Function */
+  24:Core/src/spi.c ****     GPIOA->MODER &= ~(GPIO_MODER_MODER5_Msk | GPIO_MODER_MODER7_Msk);
+  41              		.loc 1 24 5 is_stmt 1 view .LVU4
+  42              		.loc 1 24 10 is_stmt 0 view .LVU5
+  43 000a 284B     		ldr	r3, .L2+4
+  44 000c 1968     		ldr	r1, [r3]
+  45              		.loc 1 24 18 view .LVU6
+  46 000e 21F44C41 		bic	r1, r1, #52224
+  47 0012 1960     		str	r1, [r3]
+  25:Core/src/spi.c ****     GPIOA->MODER |= (2U << GPIO_MODER_MODER5_Pos) |
+  48              		.loc 1 25 5 is_stmt 1 view .LVU7
+  49              		.loc 1 25 10 is_stmt 0 view .LVU8
+  50 0014 1968     		ldr	r1, [r3]
+  51              		.loc 1 25 18 view .LVU9
+  52 0016 41F40841 		orr	r1, r1, #34816
+  53 001a 1960     		str	r1, [r3]
+  26:Core/src/spi.c ****                     (2U << GPIO_MODER_MODER7_Pos);
+  27:Core/src/spi.c ****     GPIOA->AFR[0] &= ~(GPIO_AFRL_AFRL5_Msk | GPIO_AFRL_AFRL7_Msk);
+  54              		.loc 1 27 5 is_stmt 1 view .LVU10
+  55              		.loc 1 27 15 is_stmt 0 view .LVU11
+  56 001c 186A     		ldr	r0, [r3, #32]
+  57              		.loc 1 27 19 view .LVU12
+  58 001e 2449     		ldr	r1, .L2+8
+  59 0020 0140     		ands	r1, r1, r0
+  60 0022 1962     		str	r1, [r3, #32]
+  28:Core/src/spi.c ****     GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFRL5_Pos) |
+  61              		.loc 1 28 5 is_stmt 1 view .LVU13
+  62              		.loc 1 28 15 is_stmt 0 view .LVU14
+  63 0024 186A     		ldr	r0, [r3, #32]
+  64              		.loc 1 28 19 view .LVU15
+  65 0026 2349     		ldr	r1, .L2+12
+  66 0028 0143     		orrs	r1, r1, r0
+  67 002a 1962     		str	r1, [r3, #32]
+  29:Core/src/spi.c ****                      (5U << GPIO_AFRL_AFRL7_Pos);
+  30:Core/src/spi.c ****     GPIOB->MODER &= ~GPIO_MODER_MODER5;
+  68              		.loc 1 30 5 is_stmt 1 view .LVU16
+  69              		.loc 1 30 10 is_stmt 0 view .LVU17
+  70 002c 03F58063 		add	r3, r3, #1024
+  71 0030 1968     		ldr	r1, [r3]
+  72              		.loc 1 30 18 view .LVU18
+  73 0032 21F44061 		bic	r1, r1, #3072
+  74 0036 1960     		str	r1, [r3]
+  31:Core/src/spi.c ****     GPIOB->MODER |= (2U << GPIO_MODER_MODER5_Pos);
+  75              		.loc 1 31 5 is_stmt 1 view .LVU19
+  76              		.loc 1 31 10 is_stmt 0 view .LVU20
+  77 0038 1968     		ldr	r1, [r3]
+  78              		.loc 1 31 18 view .LVU21
+  79 003a 41F40061 		orr	r1, r1, #2048
+  80 003e 1960     		str	r1, [r3]
+  32:Core/src/spi.c ****     GPIOB->AFR[0] &= ~GPIO_AFRL_AFRL5_Msk;
+  81              		.loc 1 32 5 is_stmt 1 view .LVU22
+  82              		.loc 1 32 15 is_stmt 0 view .LVU23
+  83 0040 196A     		ldr	r1, [r3, #32]
+ARM GAS  /tmp/ccYoQpfy.s 			page 3
+
+
+  84              		.loc 1 32 19 view .LVU24
+  85 0042 21F47001 		bic	r1, r1, #15728640
+  86 0046 1962     		str	r1, [r3, #32]
+  33:Core/src/spi.c ****     GPIOB->AFR[0] |= (5U << GPIO_AFRL_AFRL5_Pos);
+  87              		.loc 1 33 5 is_stmt 1 view .LVU25
+  88              		.loc 1 33 15 is_stmt 0 view .LVU26
+  89 0048 196A     		ldr	r1, [r3, #32]
+  90              		.loc 1 33 19 view .LVU27
+  91 004a 41F4A001 		orr	r1, r1, #5242880
+  92 004e 1962     		str	r1, [r3, #32]
+  34:Core/src/spi.c **** 
+  35:Core/src/spi.c ****     /* Enable SPI1 peripheral clock */
+  36:Core/src/spi.c ****     RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;
+  93              		.loc 1 36 5 is_stmt 1 view .LVU28
+  94              		.loc 1 36 8 is_stmt 0 view .LVU29
+  95 0050 536C     		ldr	r3, [r2, #68]
+  96              		.loc 1 36 18 view .LVU30
+  97 0052 43F48053 		orr	r3, r3, #4096
+  98 0056 5364     		str	r3, [r2, #68]
+  37:Core/src/spi.c **** 
+  38:Core/src/spi.c ****     DMA2_Stream3->CR &= ~DMA_SxCR_EN; // Выключить поток для настройки
+  99              		.loc 1 38 5 is_stmt 1 view .LVU31
+ 100              		.loc 1 38 17 is_stmt 0 view .LVU32
+ 101 0058 174B     		ldr	r3, .L2+16
+ 102 005a 9A6D     		ldr	r2, [r3, #88]
+ 103              		.loc 1 38 22 view .LVU33
+ 104 005c 22F00102 		bic	r2, r2, #1
+ 105 0060 9A65     		str	r2, [r3, #88]
+  39:Core/src/spi.c ****     DMA2_Stream3->PAR = (uint32_t)&(SPI1->DR); // Периферийный адрес (регист
+ 106              		.loc 1 39 5 is_stmt 1 view .LVU34
+ 107              		.loc 1 39 23 is_stmt 0 view .LVU35
+ 108 0062 164A     		ldr	r2, .L2+20
+ 109 0064 1A66     		str	r2, [r3, #96]
+  40:Core/src/spi.c ****     DMA2_Stream3->M0AR = (uint32_t)g_app.frame_buffer; // Адрес буфера в памяти
+ 110              		.loc 1 40 5 is_stmt 1 view .LVU36
+ 111              		.loc 1 40 41 is_stmt 0 view .LVU37
+ 112 0066 164A     		ldr	r2, .L2+24
+ 113 0068 9288     		ldrh	r2, [r2, #4]
+ 114 006a 92B2     		uxth	r2, r2
+ 115              		.loc 1 40 24 view .LVU38
+ 116 006c 5A66     		str	r2, [r3, #100]
+  41:Core/src/spi.c ****     DMA2_Stream3->NDTR = DMA_SPI_BUFFER_SIZE; // Количество байт для переда�
+ 117              		.loc 1 41 5 is_stmt 1 view .LVU39
+ 118              		.loc 1 41 24 is_stmt 0 view .LVU40
+ 119 006e 0222     		movs	r2, #2
+ 120 0070 DA65     		str	r2, [r3, #92]
+  42:Core/src/spi.c ****     DMA2_Stream3->CR = DMA_SxCR_CHSEL_0 | DMA_SxCR_CHSEL_1 | // Channel 3 (пример)
+ 121              		.loc 1 42 5 is_stmt 1 view .LVU41
+ 122              		.loc 1 42 22 is_stmt 0 view .LVU42
+ 123 0072 144A     		ldr	r2, .L2+28
+ 124 0074 9A65     		str	r2, [r3, #88]
+  43:Core/src/spi.c ****                         DMA_SxCR_MSIZE_0 | // Memory size 8-bit
+  44:Core/src/spi.c ****                         DMA_SxCR_PSIZE_0 | // Peripheral size 8-bit
+  45:Core/src/spi.c ****                         DMA_SxCR_MINC |    // Memory increment mode
+  46:Core/src/spi.c ****                         DMA_SxCR_DIR_0;    // Memory-to-Peripheral
+  47:Core/src/spi.c ****     DMA2_Stream3->CR |= DMA_SxCR_EN; // Включить поток
+ 125              		.loc 1 47 5 is_stmt 1 view .LVU43
+ARM GAS  /tmp/ccYoQpfy.s 			page 4
+
+
+ 126              		.loc 1 47 17 is_stmt 0 view .LVU44
+ 127 0076 9A6D     		ldr	r2, [r3, #88]
+ 128              		.loc 1 47 22 view .LVU45
+ 129 0078 42F00102 		orr	r2, r2, #1
+ 130 007c 9A65     		str	r2, [r3, #88]
+  48:Core/src/spi.c **** 
+  49:Core/src/spi.c ****     /* 8. Disable SPI before configuration */
+  50:Core/src/spi.c ****     SPI1->CR1 = 0U;
+ 131              		.loc 1 50 5 is_stmt 1 view .LVU46
+ 132              		.loc 1 50 15 is_stmt 0 view .LVU47
+ 133 007e A3F59A33 		sub	r3, r3, #78848
+ 134 0082 0022     		movs	r2, #0
+ 135 0084 1A60     		str	r2, [r3]
+  51:Core/src/spi.c ****     SPI1->CR2 = 0U;
+ 136              		.loc 1 51 5 is_stmt 1 view .LVU48
+ 137              		.loc 1 51 15 is_stmt 0 view .LVU49
+ 138 0086 5A60     		str	r2, [r3, #4]
+  52:Core/src/spi.c **** 
+  53:Core/src/spi.c ****     /*
+  54:Core/src/spi.c ****      * 9. Configure SPI1
+  55:Core/src/spi.c ****      *
+  56:Core/src/spi.c ****      * MSTR     = 1  Master
+  57:Core/src/spi.c ****      * BR       = 110 / 128 (fPCLK/128 = 108/128 = 843.75 kHz)
+  58:Core/src/spi.c ****      * CPOL     = 0
+  59:Core/src/spi.c ****      * CPHA     = 0
+  60:Core/src/spi.c ****      * LSBFIRST = 0
+  61:Core/src/spi.c ****      * SSM      = 1
+  62:Core/src/spi.c ****      * SSI      = 1
+  63:Core/src/spi.c ****      * BIDIMODE = 1
+  64:Core/src/spi.c ****      * BIDIOE   = 1
+  65:Core/src/spi.c ****      */
+  66:Core/src/spi.c **** 
+  67:Core/src/spi.c ****     SPI1->CR1 =
+ 139              		.loc 1 67 5 is_stmt 1 view .LVU50
+ 140              		.loc 1 67 15 is_stmt 0 view .LVU51
+ 141 0088 4FF44D72 		mov	r2, #820
+ 142 008c 1A60     		str	r2, [r3]
+  68:Core/src/spi.c ****         SPI_CR1_MSTR |
+  69:Core/src/spi.c ****         (6U << SPI_CR1_BR_Pos) | // BR = 110 / 128
+  70:Core/src/spi.c ****         SPI_CR1_SSM |
+  71:Core/src/spi.c ****         SPI_CR1_SSI ;
+  72:Core/src/spi.c ****         // SPI_CR1_BIDIMODE |
+  73:Core/src/spi.c ****         // SPI_CR1_BIDIOE;
+  74:Core/src/spi.c **** 
+  75:Core/src/spi.c ****     SPI1->CR2 |= SPI_CR2_TXDMAEN; // Enable TX DMA
+ 143              		.loc 1 75 5 is_stmt 1 view .LVU52
+ 144              		.loc 1 75 9 is_stmt 0 view .LVU53
+ 145 008e 5A68     		ldr	r2, [r3, #4]
+ 146              		.loc 1 75 15 view .LVU54
+ 147 0090 42F00202 		orr	r2, r2, #2
+ 148 0094 5A60     		str	r2, [r3, #4]
+  76:Core/src/spi.c **** 
+  77:Core/src/spi.c ****     /* For test with Arduino slave */
+  78:Core/src/spi.c ****     SPI1->CR1 &= ~SPI_CR1_LSBFIRST;
+ 149              		.loc 1 78 5 is_stmt 1 view .LVU55
+ 150              		.loc 1 78 9 is_stmt 0 view .LVU56
+ 151 0096 1A68     		ldr	r2, [r3]
+ARM GAS  /tmp/ccYoQpfy.s 			page 5
+
+
+ 152              		.loc 1 78 15 view .LVU57
+ 153 0098 22F08002 		bic	r2, r2, #128
+ 154 009c 1A60     		str	r2, [r3]
+  79:Core/src/spi.c ****     // SPI1->CR1 |= SPI_CR1_CPOL | SPI_CR1_CPHA;
+  80:Core/src/spi.c **** 
+  81:Core/src/spi.c ****     /* 10. Enable SPI1 */
+  82:Core/src/spi.c ****     SPI1->CR1 |= SPI_CR1_SPE;
+ 155              		.loc 1 82 5 is_stmt 1 view .LVU58
+ 156              		.loc 1 82 9 is_stmt 0 view .LVU59
+ 157 009e 1A68     		ldr	r2, [r3]
+ 158              		.loc 1 82 15 view .LVU60
+ 159 00a0 42F04002 		orr	r2, r2, #64
+ 160 00a4 1A60     		str	r2, [r3]
+  83:Core/src/spi.c **** }
+ 161              		.loc 1 83 1 view .LVU61
+ 162 00a6 7047     		bx	lr
+ 163              	.L3:
+ 164              		.align	2
+ 165              	.L2:
+ 166 00a8 00380240 		.word	1073887232
+ 167 00ac 00000240 		.word	1073872896
+ 168 00b0 FFFF0F0F 		.word	252706815
+ 169 00b4 00005050 		.word	1347420160
+ 170 00b8 00640240 		.word	1073898496
+ 171 00bc 0C300140 		.word	1073819660
+ 172 00c0 00000000 		.word	g_app
+ 173 00c4 402C0006 		.word	100674624
+ 174              		.cfi_endproc
+ 175              	.LFE141:
+ 177              		.section	.text.SPI1_TransmitByte,"ax",%progbits
+ 178              		.align	1
+ 179              		.global	SPI1_TransmitByte
+ 180              		.syntax unified
+ 181              		.thumb
+ 182              		.thumb_func
+ 184              	SPI1_TransmitByte:
+ 185              	.LFB142:
+  84:Core/src/spi.c **** 
+  85:Core/src/spi.c **** void SPI1_TransmitByte(uint8_t data)
+  86:Core/src/spi.c **** {
+ 186              		.loc 1 86 1 is_stmt 1 view -0
+ 187              		.cfi_startproc
+ 188              		@ args = 0, pretend = 0, frame = 0
+ 189              		@ frame_needed = 0, uses_anonymous_args = 0
+ 190              		@ link register save eliminated.
+ 191              	.LVL0:
+ 192              	.L5:
+  87:Core/src/spi.c ****     /* Wait until transmit buffer is empty */
+  88:Core/src/spi.c **** 
+  89:Core/src/spi.c ****     while (!(SPI1->SR & SPI_SR_TXE))
+  90:Core/src/spi.c ****     {
+  91:Core/src/spi.c ****     }
+ 193              		.loc 1 91 5 view .LVU63
+  89:Core/src/spi.c ****     {
+ 194              		.loc 1 89 12 discriminator 1 view .LVU64
+  89:Core/src/spi.c ****     {
+ 195              		.loc 1 89 18 is_stmt 0 discriminator 1 view .LVU65
+ARM GAS  /tmp/ccYoQpfy.s 			page 6
+
+
+ 196 0000 064B     		ldr	r3, .L7
+ 197 0002 9B68     		ldr	r3, [r3, #8]
+  89:Core/src/spi.c ****     {
+ 198              		.loc 1 89 12 discriminator 1 view .LVU66
+ 199 0004 13F0020F 		tst	r3, #2
+ 200 0008 FAD0     		beq	.L5
+  92:Core/src/spi.c **** 
+  93:Core/src/spi.c ****     /* Write data */
+  94:Core/src/spi.c **** 
+  95:Core/src/spi.c ****     *(__IO uint8_t *)&SPI1->DR = data;
+ 201              		.loc 1 95 5 is_stmt 1 view .LVU67
+ 202              		.loc 1 95 32 is_stmt 0 view .LVU68
+ 203 000a 044B     		ldr	r3, .L7
+ 204 000c 1873     		strb	r0, [r3, #12]
+  96:Core/src/spi.c **** 
+  97:Core/src/spi.c ****     /* Wait until transmission is complete */
+  98:Core/src/spi.c **** 
+  99:Core/src/spi.c ****     while (SPI1->SR & SPI_SR_BSY)
+ 205              		.loc 1 99 5 is_stmt 1 view .LVU69
+ 206              	.L6:
+ 100:Core/src/spi.c ****     {
+ 101:Core/src/spi.c ****     }
+ 207              		.loc 1 101 5 view .LVU70
+  99:Core/src/spi.c ****     {
+ 208              		.loc 1 99 12 discriminator 1 view .LVU71
+  99:Core/src/spi.c ****     {
+ 209              		.loc 1 99 16 is_stmt 0 discriminator 1 view .LVU72
+ 210 000e 034B     		ldr	r3, .L7
+ 211 0010 9B68     		ldr	r3, [r3, #8]
+  99:Core/src/spi.c ****     {
+ 212              		.loc 1 99 12 discriminator 1 view .LVU73
+ 213 0012 13F0800F 		tst	r3, #128
+ 214 0016 FAD1     		bne	.L6
+ 102:Core/src/spi.c **** }
+ 215              		.loc 1 102 1 view .LVU74
+ 216 0018 7047     		bx	lr
+ 217              	.L8:
+ 218 001a 00BF     		.align	2
+ 219              	.L7:
+ 220 001c 00300140 		.word	1073819648
+ 221              		.cfi_endproc
+ 222              	.LFE142:
+ 224              		.section	.text.SPI1_TransmitBuffer,"ax",%progbits
+ 225              		.align	1
+ 226              		.global	SPI1_TransmitBuffer
+ 227              		.syntax unified
+ 228              		.thumb
+ 229              		.thumb_func
+ 231              	SPI1_TransmitBuffer:
+ 232              	.LVL1:
+ 233              	.LFB143:
+ 103:Core/src/spi.c **** 
+ 104:Core/src/spi.c **** void SPI1_TransmitBuffer(
+ 105:Core/src/spi.c ****     const uint8_t *data,
+ 106:Core/src/spi.c ****     uint32_t length
+ 107:Core/src/spi.c **** )
+ 108:Core/src/spi.c **** {
+ARM GAS  /tmp/ccYoQpfy.s 			page 7
+
+
+ 234              		.loc 1 108 1 is_stmt 1 view -0
+ 235              		.cfi_startproc
+ 236              		@ args = 0, pretend = 0, frame = 0
+ 237              		@ frame_needed = 0, uses_anonymous_args = 0
+ 238              		.loc 1 108 1 is_stmt 0 view .LVU76
+ 239 0000 38B5     		push	{r3, r4, r5, lr}
+ 240              	.LCFI0:
+ 241              		.cfi_def_cfa_offset 16
+ 242              		.cfi_offset 3, -16
+ 243              		.cfi_offset 4, -12
+ 244              		.cfi_offset 5, -8
+ 245              		.cfi_offset 14, -4
+ 109:Core/src/spi.c ****     if ((data == 0) || (length == 0U))
+ 246              		.loc 1 109 5 is_stmt 1 view .LVU77
+ 247              		.loc 1 109 15 is_stmt 0 view .LVU78
+ 248 0002 0446     		mov	r4, r0
+ 249              		.loc 1 109 32 view .LVU79
+ 250 0004 0B46     		mov	r3, r1
+ 251              		.loc 1 109 8 view .LVU80
+ 252 0006 0029     		cmp	r1, #0
+ 253 0008 18BF     		it	ne
+ 254 000a 0028     		cmpne	r0, #0
+ 255 000c 05D1     		bne	.L11
+ 256 000e 07E0     		b	.L9
+ 257              	.LVL2:
+ 258              	.L12:
+ 110:Core/src/spi.c ****     {
+ 111:Core/src/spi.c ****         return;
+ 112:Core/src/spi.c ****     }
+ 113:Core/src/spi.c **** 
+ 114:Core/src/spi.c ****     while (length--)
+ 115:Core/src/spi.c ****     {
+ 116:Core/src/spi.c ****         SPI1_TransmitByte(*data++);
+ 259              		.loc 1 116 9 is_stmt 1 view .LVU81
+ 260              		.loc 1 116 9 is_stmt 0 view .LVU82
+ 261 0010 14F8010B 		ldrb	r0, [r4], #1	@ zero_extendqisi2
+ 262              	.LVL3:
+ 263              		.loc 1 116 9 view .LVU83
+ 264 0014 FFF7FEFF 		bl	SPI1_TransmitByte
+ 265              	.LVL4:
+ 114:Core/src/spi.c ****     {
+ 266              		.loc 1 114 18 view .LVU84
+ 267 0018 2B46     		mov	r3, r5
+ 268              	.LVL5:
+ 269              	.L11:
+ 114:Core/src/spi.c ****     {
+ 270              		.loc 1 114 12 is_stmt 1 view .LVU85
+ 114:Core/src/spi.c ****     {
+ 271              		.loc 1 114 18 is_stmt 0 view .LVU86
+ 272 001a 5D1E     		subs	r5, r3, #1
+ 273              	.LVL6:
+ 114:Core/src/spi.c ****     {
+ 274              		.loc 1 114 12 view .LVU87
+ 275 001c 002B     		cmp	r3, #0
+ 276 001e F7D1     		bne	.L12
+ 277              	.LVL7:
+ 278              	.L9:
+ARM GAS  /tmp/ccYoQpfy.s 			page 8
+
+
+ 117:Core/src/spi.c ****     }
+ 118:Core/src/spi.c **** }...
+ 279              		.loc 1 118 1 view .LVU88
+ 280 0020 38BD     		pop	{r3, r4, r5, pc}
+ 281              		.loc 1 118 1 view .LVU89
+ 282              		.cfi_endproc
+ 283              	.LFE143:
+ 285              		.text
+ 286              	.Letext0:
+ 287              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 288              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 289              		.file 4 "Core/inc/app_data.h"
+ARM GAS  /tmp/ccYoQpfy.s 			page 9
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 spi.c
+     /tmp/ccYoQpfy.s:21     .text.SPI1_Init:00000000 $t
+     /tmp/ccYoQpfy.s:27     .text.SPI1_Init:00000000 SPI1_Init
+     /tmp/ccYoQpfy.s:166    .text.SPI1_Init:000000a8 $d
+     /tmp/ccYoQpfy.s:178    .text.SPI1_TransmitByte:00000000 $t
+     /tmp/ccYoQpfy.s:184    .text.SPI1_TransmitByte:00000000 SPI1_TransmitByte
+     /tmp/ccYoQpfy.s:220    .text.SPI1_TransmitByte:0000001c $d
+     /tmp/ccYoQpfy.s:225    .text.SPI1_TransmitBuffer:00000000 $t
+     /tmp/ccYoQpfy.s:231    .text.SPI1_TransmitBuffer:00000000 SPI1_TransmitBuffer
+
+UNDEFINED SYMBOLS
+g_app
