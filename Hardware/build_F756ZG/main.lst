@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccAwXiVB.s 			page 1
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s 			page 1
 
 
    1              		.cpu cortex-m7
@@ -20,134 +20,308 @@ ARM GAS  /tmp/ccAwXiVB.s 			page 1
   17              	.Ltext0:
   18              		.cfi_sections	.debug_frame
   19              		.file 1 "Core/src/main.c"
-  20              		.section	.text.main,"ax",%progbits
-  21              		.align	1
-  22              		.global	main
-  23              		.syntax unified
-  24              		.thumb
-  25              		.thumb_func
-  27              	main:
-  28              	.LFB141:
+  20              		.section	.rodata.P10_TestPixel.str1.4,"aMS",%progbits,1
+  21              		.align	2
+  22              	.LC0:
+  23 0000 FFFFFF7F 		.ascii	"\377\377\377\177\377\377\277\377\377\377\377\377\377"
+  23      FFFFBFFF 
+  23      FFFFFFFF 
+  23      FF
+  24 000d FFFFFF00 		.ascii	"\377\377\377\000"
+  25              		.section	.text.P10_TestPixel,"ax",%progbits
+  26              		.align	1
+  27              		.global	P10_TestPixel
+  28              		.syntax unified
+  29              		.thumb
+  30              		.thumb_func
+  32              	P10_TestPixel:
+  33              	.LFB142:
    1:Core/src/main.c **** #include "init.h"
    2:Core/src/main.c **** #include "app_data.h"
    3:Core/src/main.c **** #include "spi.h"
    4:Core/src/main.c **** 
-   5:Core/src/main.c **** /**
-   6:Core/src/main.c ****  * @brief Точка входа.
-   7:Core/src/main.c ****  */
-   8:Core/src/main.c **** int main(void)
-   9:Core/src/main.c **** {
-  29              		.loc 1 9 1 view -0
-  30              		.cfi_startproc
-  31              		@ Volatile: function does not return.
-  32              		@ args = 0, pretend = 0, frame = 0
-  33              		@ frame_needed = 0, uses_anonymous_args = 0
-  34 0000 08B5     		push	{r3, lr}
-  35              	.LCFI0:
-  36              		.cfi_def_cfa_offset 8
-  37              		.cfi_offset 3, -8
-  38              		.cfi_offset 14, -4
-  10:Core/src/main.c ****     init_config.PSC = 216;
-  39              		.loc 1 10 5 view .LVU1
-  40              		.loc 1 10 21 is_stmt 0 view .LVU2
-  41 0002 104B     		ldr	r3, .L5
-  42 0004 D822     		movs	r2, #216
-  43 0006 5A80     		strh	r2, [r3, #2]	@ movhi
-  11:Core/src/main.c ****     init_config.ARR = 1000;
-  44              		.loc 1 11 5 is_stmt 1 view .LVU3
-  45              		.loc 1 11 21 is_stmt 0 view .LVU4
-  46 0008 4FF47A72 		mov	r2, #1000
-  47 000c 1A80     		strh	r2, [r3]	@ movhi
-ARM GAS  /tmp/ccAwXiVB.s 			page 2
+   5:Core/src/main.c **** void P10_TestPixel(void);
+   6:Core/src/main.c **** 
+   7:Core/src/main.c **** /**
+   8:Core/src/main.c ****  * @brief Точка входа.
+   9:Core/src/main.c ****  */
+  10:Core/src/main.c **** int main(void)
+  11:Core/src/main.c **** {
+  12:Core/src/main.c ****     init_config.PSC = 216;
+  13:Core/src/main.c ****     init_config.ARR = 1000;
+  14:Core/src/main.c ****     SystemClock_Config();
+  15:Core/src/main.c ****     SysTick_Init_Config();
+  16:Core/src/main.c ****     GPIO_Config();
+  17:Core/src/main.c ****     EXTI_Config();
+  18:Core/src/main.c ****     TIM1_Config();
+  19:Core/src/main.c ****     // ADC1_DMA_Config();
+  20:Core/src/main.c ****     SPI1_Init();
+  21:Core/src/main.c **** 
+  22:Core/src/main.c ****     P10_TestPixel();
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s 			page 2
 
 
-  12:Core/src/main.c ****     SystemClock_Config();
-  48              		.loc 1 12 5 is_stmt 1 view .LVU5
-  49 000e FFF7FEFF 		bl	SystemClock_Config
-  50              	.LVL0:
-  13:Core/src/main.c ****     SysTick_Init_Config();
-  51              		.loc 1 13 5 view .LVU6
-  52 0012 FFF7FEFF 		bl	SysTick_Init_Config
-  53              	.LVL1:
-  14:Core/src/main.c ****     GPIO_Config();
-  54              		.loc 1 14 5 view .LVU7
-  55 0016 FFF7FEFF 		bl	GPIO_Config
-  56              	.LVL2:
-  15:Core/src/main.c ****     EXTI_Config();
-  57              		.loc 1 15 5 view .LVU8
-  58 001a FFF7FEFF 		bl	EXTI_Config
-  59              	.LVL3:
-  16:Core/src/main.c ****     TIM1_Config();
-  60              		.loc 1 16 5 view .LVU9
-  61 001e FFF7FEFF 		bl	TIM1_Config
-  62              	.LVL4:
-  17:Core/src/main.c ****     ADC1_DMA_Config();
-  63              		.loc 1 17 5 view .LVU10
-  64 0022 FFF7FEFF 		bl	ADC1_DMA_Config
-  65              	.LVL5:
-  18:Core/src/main.c ****     SPI1_Init();
-  66              		.loc 1 18 5 view .LVU11
-  67 0026 FFF7FEFF 		bl	SPI1_Init
-  68              	.LVL6:
-  69              	.L2:
-  19:Core/src/main.c **** 
-  20:Core/src/main.c ****     while (1)
-  70              		.loc 1 20 5 view .LVU12
-  21:Core/src/main.c ****     {
-  22:Core/src/main.c ****         if(g_app.global_tick_count > 1000){
-  71              		.loc 1 22 9 view .LVU13
-  72              		.loc 1 22 17 is_stmt 0 view .LVU14
-  73 002a 074B     		ldr	r3, .L5+4
-  74 002c DB88     		ldrh	r3, [r3, #6]
-  75 002e 9BB2     		uxth	r3, r3
-  76              		.loc 1 22 11 view .LVU15
-  77 0030 B3F57A7F 		cmp	r3, #1000
-  78 0034 F9D9     		bls	.L2
-  23:Core/src/main.c ****             SPI1_TransmitByte(240);
-  79              		.loc 1 23 13 is_stmt 1 view .LVU16
-  80 0036 F020     		movs	r0, #240
-  81 0038 FFF7FEFF 		bl	SPI1_TransmitByte
-  82              	.LVL7:
-  24:Core/src/main.c ****             g_app.global_tick_count = 0;
-  83              		.loc 1 24 13 view .LVU17
-  84              		.loc 1 24 37 is_stmt 0 view .LVU18
-  85 003c 024B     		ldr	r3, .L5+4
-  86 003e 0022     		movs	r2, #0
-  87 0040 DA80     		strh	r2, [r3, #6]	@ movhi
-  88 0042 F2E7     		b	.L2
-  89              	.L6:
-  90              		.align	2
-  91              	.L5:
-ARM GAS  /tmp/ccAwXiVB.s 			page 3
+  23:Core/src/main.c **** 
+  24:Core/src/main.c ****     while (1)
+  25:Core/src/main.c ****     {
+  26:Core/src/main.c ****         // if(g_app.global_tick_count > 1000){
+  27:Core/src/main.c ****         //     SPI1_TransmitByte(240);
+  28:Core/src/main.c ****         //     g_app.global_tick_count = 0;
+  29:Core/src/main.c ****         // } 
+  30:Core/src/main.c ****     }
+  31:Core/src/main.c **** }
+  32:Core/src/main.c **** 
+  33:Core/src/main.c **** /*
+  34:Core/src/main.c **** CLK	        PA5 (SPI1 SCK)
+  35:Core/src/main.c **** R	        PB5 (SPI1 MOSI)
+  36:Core/src/main.c **** SCLK(LAT)   PB0
+  37:Core/src/main.c **** OE	        PB1
+  38:Core/src/main.c **** A	        PB2
+  39:Core/src/main.c **** B	        PB10
+  40:Core/src/main.c **** */
+  41:Core/src/main.c **** void P10_TestPixel(void)
+  42:Core/src/main.c **** {
+  34              		.loc 1 42 1 view -0
+  35              		.cfi_startproc
+  36              		@ args = 0, pretend = 0, frame = 16
+  37              		@ frame_needed = 0, uses_anonymous_args = 0
+  38 0000 10B5     		push	{r4, lr}
+  39              	.LCFI0:
+  40              		.cfi_def_cfa_offset 8
+  41              		.cfi_offset 4, -8
+  42              		.cfi_offset 14, -4
+  43 0002 84B0     		sub	sp, sp, #16
+  44              	.LCFI1:
+  45              		.cfi_def_cfa_offset 24
+  43:Core/src/main.c ****     /*
+  44:Core/src/main.c ****      * 128 bits = 16 bytes.
+  45:Core/src/main.c ****      * 1 pixel ON, all other pixels OFF.
+  46:Core/src/main.c ****      *
+  47:Core/src/main.c ****      * Output LOW  -> LED ON
+  48:Core/src/main.c ****      * Output HIGH -> LED OFF
+  49:Core/src/main.c ****      */
+  50:Core/src/main.c **** 
+  51:Core/src/main.c ****     const uint8_t data[16] =
+  46              		.loc 1 51 5 view .LVU1
+  47              		.loc 1 51 19 is_stmt 0 view .LVU2
+  48 0004 124B     		ldr	r3, .L5
+  49 0006 0FCB     		ldm	r3, {r0, r1, r2, r3}
+  50 0008 04AC     		add	r4, sp, #16
+  51 000a 04E90F00 		stmdb	r4, {r0, r1, r2, r3}
+  52:Core/src/main.c ****     {
+  53:Core/src/main.c ****         0xFF, 0xFF, 0xFF, 0x7F,
+  54:Core/src/main.c ****         0xFF, 0xFF, 0xBF, 0xFF,
+  55:Core/src/main.c ****         0xFF, 0xFF, 0xFF, 0xFF,
+  56:Core/src/main.c ****         0xFF, 0xFF, 0xFF, 0xFF
+  57:Core/src/main.c ****     };
+  58:Core/src/main.c **** 
+  59:Core/src/main.c ****     /* Disable display during data transfer */
+  60:Core/src/main.c **** 
+  61:Core/src/main.c ****     GPIOB->BSRR = (1U << (1U + 16U));
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s 			page 3
 
 
-  92 0044 00000000 		.word	init_config
-  93 0048 00000000 		.word	g_app
-  94              		.cfi_endproc
-  95              	.LFE141:
-  97              		.text
-  98              	.Letext0:
-  99              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
- 100              		.file 3 "Core/inc/app_data.h"
- 101              		.file 4 "Core/inc/spi.h"
- 102              		.file 5 "Core/inc/init.h"
-ARM GAS  /tmp/ccAwXiVB.s 			page 4
+  52              		.loc 1 61 5 is_stmt 1 view .LVU3
+  53              		.loc 1 61 17 is_stmt 0 view .LVU4
+  54 000e 114B     		ldr	r3, .L5+4
+  55 0010 4FF40032 		mov	r2, #131072
+  56 0014 9A61     		str	r2, [r3, #24]
+  62:Core/src/main.c **** 
+  63:Core/src/main.c ****     /* Select scan address 00 */
+  64:Core/src/main.c **** 
+  65:Core/src/main.c ****     GPIOB->BSRR = (1U << (2U + 16U));
+  57              		.loc 1 65 5 is_stmt 1 view .LVU5
+  58              		.loc 1 65 17 is_stmt 0 view .LVU6
+  59 0016 4FF48022 		mov	r2, #262144
+  60 001a 9A61     		str	r2, [r3, #24]
+  66:Core/src/main.c ****     GPIOB->BSRR = (1U << (10U + 16U));
+  61              		.loc 1 66 5 is_stmt 1 view .LVU7
+  62              		.loc 1 66 17 is_stmt 0 view .LVU8
+  63 001c 4FF08062 		mov	r2, #67108864
+  64 0020 9A61     		str	r2, [r3, #24]
+  67:Core/src/main.c **** 
+  68:Core/src/main.c ****     /* Send 128 bits */
+  69:Core/src/main.c **** 
+  70:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
+  65              		.loc 1 70 5 is_stmt 1 view .LVU9
+  66              	.LBB2:
+  67              		.loc 1 70 10 view .LVU10
+  68              	.LVL0:
+  69              		.loc 1 70 19 is_stmt 0 view .LVU11
+  70 0022 0024     		movs	r4, #0
+  71              		.loc 1 70 5 view .LVU12
+  72 0024 07E0     		b	.L2
+  73              	.LVL1:
+  74              	.L3:
+  71:Core/src/main.c ****     {
+  72:Core/src/main.c ****         SPI1_TransmitByte(data[i]);
+  75              		.loc 1 72 9 is_stmt 1 view .LVU13
+  76              		.loc 1 72 31 is_stmt 0 view .LVU14
+  77 0026 04F11003 		add	r3, r4, #16
+  78 002a 6B44     		add	r3, sp, r3
+  79              		.loc 1 72 9 view .LVU15
+  80 002c 13F8100C 		ldrb	r0, [r3, #-16]	@ zero_extendqisi2
+  81 0030 FFF7FEFF 		bl	SPI1_TransmitByte
+  82              	.LVL2:
+  70:Core/src/main.c ****     {
+  83              		.loc 1 70 36 is_stmt 1 discriminator 3 view .LVU16
+  84 0034 0134     		adds	r4, r4, #1
+  85              	.LVL3:
+  86              	.L2:
+  70:Core/src/main.c ****     {
+  87              		.loc 1 70 28 discriminator 1 view .LVU17
+  88 0036 0F2C     		cmp	r4, #15
+  89 0038 F5D9     		bls	.L3
+  90              	.LBE2:
+  73:Core/src/main.c ****     }
+  74:Core/src/main.c **** 
+  75:Core/src/main.c ****     /* Latch data: rising edge */
+  76:Core/src/main.c **** 
+  77:Core/src/main.c ****     GPIOB->BSRR = (1U << (0U + 16U));
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s 			page 4
+
+
+  91              		.loc 1 77 5 view .LVU18
+  92              		.loc 1 77 17 is_stmt 0 view .LVU19
+  93 003a 064B     		ldr	r3, .L5+4
+  94 003c 4FF48032 		mov	r2, #65536
+  95 0040 9A61     		str	r2, [r3, #24]
+  78:Core/src/main.c ****     GPIOB->BSRR = (1U << 0U);
+  96              		.loc 1 78 5 is_stmt 1 view .LVU20
+  97              		.loc 1 78 17 is_stmt 0 view .LVU21
+  98 0042 0122     		movs	r2, #1
+  99 0044 9A61     		str	r2, [r3, #24]
+  79:Core/src/main.c **** 
+  80:Core/src/main.c ****     /* Enable display */
+  81:Core/src/main.c **** 
+  82:Core/src/main.c ****     GPIOB->BSRR = (1U << 1U);
+ 100              		.loc 1 82 5 is_stmt 1 view .LVU22
+ 101              		.loc 1 82 17 is_stmt 0 view .LVU23
+ 102 0046 0222     		movs	r2, #2
+ 103 0048 9A61     		str	r2, [r3, #24]
+  83:Core/src/main.c **** }...
+ 104              		.loc 1 83 1 view .LVU24
+ 105 004a 04B0     		add	sp, sp, #16
+ 106              	.LCFI2:
+ 107              		.cfi_def_cfa_offset 8
+ 108              		@ sp needed
+ 109 004c 10BD     		pop	{r4, pc}
+ 110              	.LVL4:
+ 111              	.L6:
+ 112              		.loc 1 83 1 view .LVU25
+ 113 004e 00BF     		.align	2
+ 114              	.L5:
+ 115 0050 00000000 		.word	.LC0
+ 116 0054 00040240 		.word	1073873920
+ 117              		.cfi_endproc
+ 118              	.LFE142:
+ 120              		.section	.text.main,"ax",%progbits
+ 121              		.align	1
+ 122              		.global	main
+ 123              		.syntax unified
+ 124              		.thumb
+ 125              		.thumb_func
+ 127              	main:
+ 128              	.LFB141:
+  11:Core/src/main.c **** {
+ 129              		.loc 1 11 1 is_stmt 1 view -0
+ 130              		.cfi_startproc
+ 131              		@ Volatile: function does not return.
+ 132              		@ args = 0, pretend = 0, frame = 0
+ 133              		@ frame_needed = 0, uses_anonymous_args = 0
+ 134 0000 08B5     		push	{r3, lr}
+ 135              	.LCFI3:
+ 136              		.cfi_def_cfa_offset 8
+ 137              		.cfi_offset 3, -8
+ 138              		.cfi_offset 14, -4
+  12:Core/src/main.c ****     init_config.PSC = 216;
+ 139              		.loc 1 12 5 view .LVU27
+  12:Core/src/main.c ****     init_config.PSC = 216;
+ 140              		.loc 1 12 21 is_stmt 0 view .LVU28
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s 			page 5
+
+
+ 141 0002 0A4B     		ldr	r3, .L10
+ 142 0004 D822     		movs	r2, #216
+ 143 0006 5A80     		strh	r2, [r3, #2]	@ movhi
+  13:Core/src/main.c ****     init_config.ARR = 1000;
+ 144              		.loc 1 13 5 is_stmt 1 view .LVU29
+  13:Core/src/main.c ****     init_config.ARR = 1000;
+ 145              		.loc 1 13 21 is_stmt 0 view .LVU30
+ 146 0008 4FF47A72 		mov	r2, #1000
+ 147 000c 1A80     		strh	r2, [r3]	@ movhi
+  14:Core/src/main.c ****     SystemClock_Config();
+ 148              		.loc 1 14 5 is_stmt 1 view .LVU31
+ 149 000e FFF7FEFF 		bl	SystemClock_Config
+ 150              	.LVL5:
+  15:Core/src/main.c ****     SysTick_Init_Config();
+ 151              		.loc 1 15 5 view .LVU32
+ 152 0012 FFF7FEFF 		bl	SysTick_Init_Config
+ 153              	.LVL6:
+  16:Core/src/main.c ****     GPIO_Config();
+ 154              		.loc 1 16 5 view .LVU33
+ 155 0016 FFF7FEFF 		bl	GPIO_Config
+ 156              	.LVL7:
+  17:Core/src/main.c ****     EXTI_Config();
+ 157              		.loc 1 17 5 view .LVU34
+ 158 001a FFF7FEFF 		bl	EXTI_Config
+ 159              	.LVL8:
+  18:Core/src/main.c ****     TIM1_Config();
+ 160              		.loc 1 18 5 view .LVU35
+ 161 001e FFF7FEFF 		bl	TIM1_Config
+ 162              	.LVL9:
+  20:Core/src/main.c ****     SPI1_Init();
+ 163              		.loc 1 20 5 view .LVU36
+ 164 0022 FFF7FEFF 		bl	SPI1_Init
+ 165              	.LVL10:
+  22:Core/src/main.c ****     P10_TestPixel();
+ 166              		.loc 1 22 5 view .LVU37
+ 167 0026 FFF7FEFF 		bl	P10_TestPixel
+ 168              	.LVL11:
+ 169              	.L8:
+  24:Core/src/main.c ****     while (1)
+ 170              		.loc 1 24 5 view .LVU38
+  30:Core/src/main.c ****     }
+ 171              		.loc 1 30 5 view .LVU39
+  24:Core/src/main.c ****     while (1)
+ 172              		.loc 1 24 11 view .LVU40
+ 173 002a FEE7     		b	.L8
+ 174              	.L11:
+ 175              		.align	2
+ 176              	.L10:
+ 177 002c 00000000 		.word	init_config
+ 178              		.cfi_endproc
+ 179              	.LFE141:
+ 181              		.text
+ 182              	.Letext0:
+ 183              		.file 2 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/machine/_defau
+ 184              		.file 3 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/sys/_stdint.h"
+ 185              		.file 4 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 186              		.file 5 "Core/inc/app_data.h"
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s 			page 6
+
+
+ 187              		.file 6 "Core/inc/spi.h"
+ 188              		.file 7 "Core/inc/init.h"
+ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s 			page 7
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 main.c
-     /tmp/ccAwXiVB.s:21     .text.main:00000000 $t
-     /tmp/ccAwXiVB.s:27     .text.main:00000000 main
-     /tmp/ccAwXiVB.s:92     .text.main:00000044 $d
+C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s:21     .rodata.P10_TestPixel.str1.4:00000000 $d
+C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s:26     .text.P10_TestPixel:00000000 $t
+C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s:32     .text.P10_TestPixel:00000000 P10_TestPixel
+C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s:115    .text.P10_TestPixel:00000050 $d
+C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s:121    .text.main:00000000 $t
+C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s:127    .text.main:00000000 main
+C:\Users\Asus\AppData\Local\Temp\ccX52S4V.s:177    .text.main:0000002c $d
 
 UNDEFINED SYMBOLS
+SPI1_TransmitByte
 SystemClock_Config
 SysTick_Init_Config
 GPIO_Config
 EXTI_Config
 TIM1_Config
-ADC1_DMA_Config
 SPI1_Init
-SPI1_TransmitByte
 init_config
-g_app

@@ -6,7 +6,7 @@
 /*
  * SPI1:
  * PA5 -> SCK
- * PA7 -> MOSI
+ * PB5 -> MOSI
  *
  * SPI Mode 0
  * Master
@@ -68,15 +68,11 @@ void SPI1_Init(void)
         SPI_CR1_MSTR |
         (6U << SPI_CR1_BR_Pos) | // BR = 110 / 128
         SPI_CR1_SSM |
-        SPI_CR1_SSI ;
+        SPI_CR1_SSI |
         SPI_CR1_BIDIMODE |
         SPI_CR1_BIDIOE;
 
     SPI1->CR2 |= SPI_CR2_TXDMAEN; // Enable TX DMA
-
-    /* For test with Arduino slave */
-    SPI1->CR1 &= ~SPI_CR1_LSBFIRST;
-    // SPI1->CR1 |= SPI_CR1_CPOL | SPI_CR1_CPHA;
 
     /* 10. Enable SPI1 */
     SPI1->CR1 |= SPI_CR1_SPE;
