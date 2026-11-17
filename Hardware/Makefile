@@ -70,6 +70,7 @@ Core/src/init.c \
 Core/src/it_handlers.c \
 Core/src/app_data.c \
 Core/src/spi.c \
+Core/drivers/p10_hub12/p10_hub12.c \
 
 # ASM sources
 ASM_SOURCES =  \

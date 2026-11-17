@@ -1,6 +1,7 @@
 #include "init.h"
 #include "app_data.h"
 #include "spi.h"
+#include "p10_hub12.h"
 
 void P10_TestPixel(void);
 
@@ -20,6 +21,7 @@ int main(void)
     SPI1_Init();
 
     P10_TestPixel();
+    HUB12_SetPixel(1, 1, true); // NADA CHECKNUT!!!
 
     while (1)
     {
