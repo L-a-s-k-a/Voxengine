@@ -1,6 +1,4 @@
-#include "init.h"
-#include "app_data.h"
-#include "spi.h"
+#include "main.h"
 #include "p10_hub12.h"
 
 void P10_TestPixel(void);
@@ -13,11 +11,7 @@ int main(void)
     init_config.PSC = 216;
     init_config.ARR = 1000;
     SystemClock_Config();
-    SysTick_Init_Config();
-    GPIO_Config();
-    EXTI_Config();
-    TIM1_Config();
-    // ADC1_DMA_Config();
+    
     SPI1_Init();
 
     P10_TestPixel();
@@ -25,10 +19,7 @@ int main(void)
 
     while (1)
     {
-        // if(g_app.global_tick_count > 1000){
-        //     SPI1_TransmitByte(240);
-        //     g_app.global_tick_count = 0;
-        // } 
+
     }
 }
 
