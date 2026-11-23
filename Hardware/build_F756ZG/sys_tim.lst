@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
+ARM GAS  /tmp/ccluEM3J.s 			page 1
 
 
    1              		.cpu cortex-m7
@@ -15,292 +15,85 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
   12              		.eabi_attribute 30, 1
   13              		.eabi_attribute 34, 1
   14              		.eabi_attribute 18, 4
-  15              		.file	"init.c"
+  15              		.file	"sys_tim.c"
   16              		.text
   17              	.Ltext0:
   18              		.cfi_sections	.debug_frame
-  19              		.file 1 "Core/src/init.c"
-  20              		.section	.text.SystemClock_Config,"ax",%progbits
+  19              		.file 1 "Core/peripherials/src/sys_tim.c"
+  20              		.section	.text.SysTick_Init_Config,"ax",%progbits
   21              		.align	1
-  22              		.global	SystemClock_Config
+  22              		.global	SysTick_Init_Config
   23              		.syntax unified
   24              		.thumb
   25              		.thumb_func
-  27              	SystemClock_Config:
+  27              	SysTick_Init_Config:
   28              	.LFB141:
-   1:Core/src/init.c **** #include "init.h"
-   2:Core/src/init.c **** #include "app_data.h"
-   3:Core/src/init.c **** 
-   4:Core/src/init.c **** /**
-   5:Core/src/init.c ****  * @brief Тактирование ядра на 216 МГц.
-   6:Core/src/init.c ****  *
-   7:Core/src/init.c ****  * Источник: HSE в режиме BYPASS (на Nucleo-144 от ST-Link приходит
-   8:Core/src/init.c ****  * готовый меандр 8 МГц на OSC_IN, а не сигнал с кварца).
-   9:Core/src/init.c ****  * Схема: HSE(8) / M(8) = 1 МГц -> * N(432) = 432 МГц -> / P(2) = 216 МГц.
-  10:Core/src/init.c ****  *       -> / Q(9) = 48 МГц (для USB, сейчас не используется).
-  11:Core/src/init.c ****  *
-  12:Core/src/init.c ****  * Почему over-drive: для F7 на 216 МГц обязателен режим Over-drive,
-  13:Core/src/init.c ****  * иначе ядро не запустится на полной частоте.
-  14:Core/src/init.c ****  * Почему 7WS: 216 МГц при 3.3 В требуют 7 wait states для Flash.
-  15:Core/src/init.c ****  */
-  16:Core/src/init.c **** void SystemClock_Config(void)
-  17:Core/src/init.c **** {
-  29              		.loc 1 17 1 view -0
+   1:Core/peripherials/src/sys_tim.c **** #include "sys_tim.h"
+   2:Core/peripherials/src/sys_tim.c **** 
+   3:Core/peripherials/src/sys_tim.c **** /**
+   4:Core/peripherials/src/sys_tim.c ****  * @brief SysTick на 1 кГц — "сердце" всей временной логики.
+   5:Core/peripherials/src/sys_tim.c ****  *
+   6:Core/peripherials/src/sys_tim.c ****  * В SysTick_Handler обрабатываются:
+   7:Core/peripherials/src/sys_tim.c ****  *  - дебаунс/удержание кнопки PC13 (FSM);
+   8:Core/peripherials/src/sys_tim.c ****  *  - отсчёт времени отсутствия пассажиров PIR.
+   9:Core/peripherials/src/sys_tim.c ****  *
+  10:Core/peripherials/src/sys_tim.c ****  * LOAD = 216000 - 1 = 215999, источник — AHB без деления.
+  11:Core/peripherials/src/sys_tim.c ****  */
+  12:Core/peripherials/src/sys_tim.c **** void SysTick_Init_Config(void)
+  13:Core/peripherials/src/sys_tim.c **** {
+  29              		.loc 1 13 1 view -0
   30              		.cfi_startproc
   31              		@ args = 0, pretend = 0, frame = 0
   32              		@ frame_needed = 0, uses_anonymous_args = 0
   33              		@ link register save eliminated.
-  18:Core/src/init.c ****     // 1. Включаем режим BYPASS (указывает, что на вход OSC_IN по�
-  19:Core/src/init.c ****     RCC->CR |= RCC_CR_HSEBYP;
-  34              		.loc 1 19 5 view .LVU1
-  35              		.loc 1 19 8 is_stmt 0 view .LVU2
-  36 0000 244B     		ldr	r3, .L7
-  37 0002 1A68     		ldr	r2, [r3]
-  38              		.loc 1 19 13 view .LVU3
-  39 0004 42F48022 		orr	r2, r2, #262144
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 2
+  14:Core/peripherials/src/sys_tim.c ****     CLEAR_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);  // На всякий случай, пред
+  34              		.loc 1 14 5 view .LVU1
+  35 0000 4FF0E023 		mov	r3, #-536813568
+  36 0004 1A69     		ldr	r2, [r3, #16]
+  37 0006 22F00102 		bic	r2, r2, #1
+  38 000a 1A61     		str	r2, [r3, #16]
+  15:Core/peripherials/src/sys_tim.c ****     SET_BIT(SysTick->CTRL, SysTick_CTRL_TICKINT_Msk);   // Разрешаем прерывание 
+  39              		.loc 1 15 5 view .LVU2
+  40 000c 1A69     		ldr	r2, [r3, #16]
+  41 000e 42F00202 		orr	r2, r2, #2
+  42 0012 1A61     		str	r2, [r3, #16]
+  16:Core/peripherials/src/sys_tim.c ****     SET_BIT(SysTick->CTRL, SysTick_CTRL_CLKSOURCE_Msk); // Источник тактировани�
+ARM GAS  /tmp/ccluEM3J.s 			page 2
 
 
-  40 0008 1A60     		str	r2, [r3]
-  20:Core/src/init.c ****     // Включаем HSE (внешний кварц)
-  21:Core/src/init.c ****     RCC->CR |= RCC_CR_HSEON;
-  41              		.loc 1 21 5 is_stmt 1 view .LVU4
-  42              		.loc 1 21 8 is_stmt 0 view .LVU5
-  43 000a 1A68     		ldr	r2, [r3]
-  44              		.loc 1 21 13 view .LVU6
-  45 000c 42F48032 		orr	r2, r2, #65536
-  46 0010 1A60     		str	r2, [r3]
-  22:Core/src/init.c ****     while (!(RCC->CR & RCC_CR_HSERDY))
-  47              		.loc 1 22 5 is_stmt 1 view .LVU7
-  48              	.L2:
-  49              		.loc 1 22 12 discriminator 1 view .LVU8
-  50              		.loc 1 22 17 is_stmt 0 discriminator 1 view .LVU9
-  51 0012 204B     		ldr	r3, .L7
-  52 0014 1B68     		ldr	r3, [r3]
-  53              		.loc 1 22 12 discriminator 1 view .LVU10
-  54 0016 13F4003F 		tst	r3, #131072
-  55 001a FAD0     		beq	.L2
-  23:Core/src/init.c ****         ;
-  24:Core/src/init.c **** 
-  25:Core/src/init.c ****     // 2. Включаем питание модуля перегрузки частоты (Over-dr
-  26:Core/src/init.c ****     RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-  56              		.loc 1 26 5 is_stmt 1 view .LVU11
-  57              		.loc 1 26 8 is_stmt 0 view .LVU12
-  58 001c 1D4A     		ldr	r2, .L7
-  59 001e 136C     		ldr	r3, [r2, #64]
-  60              		.loc 1 26 18 view .LVU13
-  61 0020 43F08053 		orr	r3, r3, #268435456
-  62 0024 1364     		str	r3, [r2, #64]
-  27:Core/src/init.c ****     PWR->CR1 |= PWR_CR1_ODEN;
-  63              		.loc 1 27 5 is_stmt 1 view .LVU14
-  64              		.loc 1 27 8 is_stmt 0 view .LVU15
-  65 0026 A2F5E432 		sub	r2, r2, #116736
-  66 002a 1368     		ldr	r3, [r2]
-  67              		.loc 1 27 14 view .LVU16
-  68 002c 43F48033 		orr	r3, r3, #65536
-  69 0030 1360     		str	r3, [r2]
-  28:Core/src/init.c ****     while (!(PWR->CSR1 & PWR_CSR1_ODRDY))
-  70              		.loc 1 28 5 is_stmt 1 view .LVU17
-  71              	.L3:
-  72              		.loc 1 28 12 discriminator 1 view .LVU18
-  73              		.loc 1 28 17 is_stmt 0 discriminator 1 view .LVU19
-  74 0032 194B     		ldr	r3, .L7+4
-  75 0034 5B68     		ldr	r3, [r3, #4]
-  76              		.loc 1 28 12 discriminator 1 view .LVU20
-  77 0036 13F4803F 		tst	r3, #65536
-  78 003a FAD0     		beq	.L3
-  29:Core/src/init.c ****         ;
-  30:Core/src/init.c **** 
-  31:Core/src/init.c ****     PWR->CR1 |= PWR_CR1_ODSWEN;
-  79              		.loc 1 31 5 is_stmt 1 view .LVU21
-  80              		.loc 1 31 8 is_stmt 0 view .LVU22
-  81 003c 164A     		ldr	r2, .L7+4
-  82 003e 1368     		ldr	r3, [r2]
-  83              		.loc 1 31 14 view .LVU23
-  84 0040 43F40033 		orr	r3, r3, #131072
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 3
-
-
-  85 0044 1360     		str	r3, [r2]
-  32:Core/src/init.c ****     while (!(PWR->CSR1 & PWR_CSR1_ODSWRDY))
-  86              		.loc 1 32 5 is_stmt 1 view .LVU24
-  87              	.L4:
-  88              		.loc 1 32 12 discriminator 1 view .LVU25
-  89              		.loc 1 32 17 is_stmt 0 discriminator 1 view .LVU26
-  90 0046 144B     		ldr	r3, .L7+4
-  91 0048 5B68     		ldr	r3, [r3, #4]
-  92              		.loc 1 32 12 discriminator 1 view .LVU27
-  93 004a 13F4003F 		tst	r3, #131072
-  94 004e FAD0     		beq	.L4
-  33:Core/src/init.c ****         ;
-  34:Core/src/init.c **** 
-  35:Core/src/init.c ****     // 3. Настройка задержки Flash (7 Wait States необходимы для ра
-  36:Core/src/init.c ****     FLASH->ACR = FLASH_ACR_LATENCY_7WS | FLASH_ACR_PRFTEN;
-  95              		.loc 1 36 5 is_stmt 1 view .LVU28
-  96              		.loc 1 36 16 is_stmt 0 view .LVU29
-  97 0050 124B     		ldr	r3, .L7+8
-  98 0052 40F20712 		movw	r2, #263
-  99 0056 1A60     		str	r2, [r3]
-  37:Core/src/init.c **** 
-  38:Core/src/init.c ****     // 4. Конфигурация главного PLL: HSE = 8MHz. Цель = 216MHz.
-  39:Core/src/init.c ****     // Формула: Частота = (HSE / M) * N / P
-  40:Core/src/init.c ****     // M = 8 (8/8 = 1MHz на входе PLL), N = 432 (1*432 = 432MHz), P = 2 (432/2 = 216MHz)
-  41:Core/src/init.c ****     // Q = 9 (для шины USB 48MHz, если понадобится: 432/9 = 48MHz)
-  42:Core/src/init.c ****     RCC->PLLCFGR = (8 << RCC_PLLCFGR_PLLM_Pos) |
- 100              		.loc 1 42 5 is_stmt 1 view .LVU30
- 101              		.loc 1 42 18 is_stmt 0 view .LVU31
- 102 0058 A3F58063 		sub	r3, r3, #1024
- 103 005c 104A     		ldr	r2, .L7+12
- 104 005e 5A60     		str	r2, [r3, #4]
-  43:Core/src/init.c ****                    (432 << RCC_PLLCFGR_PLLN_Pos) |
-  44:Core/src/init.c ****                    (0 << RCC_PLLCFGR_PLLP_Pos) | // 00 означает P=2
-  45:Core/src/init.c ****                    (RCC_PLLCFGR_PLLSRC_HSE) |
-  46:Core/src/init.c ****                    (9 << RCC_PLLCFGR_PLLQ_Pos);
-  47:Core/src/init.c **** 
-  48:Core/src/init.c ****     // Включаем PLL
-  49:Core/src/init.c ****     RCC->CR |= RCC_CR_PLLON;
- 105              		.loc 1 49 5 is_stmt 1 view .LVU32
- 106              		.loc 1 49 8 is_stmt 0 view .LVU33
- 107 0060 1A68     		ldr	r2, [r3]
- 108              		.loc 1 49 13 view .LVU34
- 109 0062 42F08072 		orr	r2, r2, #16777216
- 110 0066 1A60     		str	r2, [r3]
-  50:Core/src/init.c ****     while (!(RCC->CR & RCC_CR_PLLRDY))
- 111              		.loc 1 50 5 is_stmt 1 view .LVU35
- 112              	.L5:
- 113              		.loc 1 50 12 discriminator 1 view .LVU36
- 114              		.loc 1 50 17 is_stmt 0 discriminator 1 view .LVU37
- 115 0068 0A4B     		ldr	r3, .L7
- 116 006a 1B68     		ldr	r3, [r3]
- 117              		.loc 1 50 12 discriminator 1 view .LVU38
- 118 006c 13F0007F 		tst	r3, #33554432
- 119 0070 FAD0     		beq	.L5
-  51:Core/src/init.c ****         ;
-  52:Core/src/init.c **** 
-  53:Core/src/init.c ****     // 5. Настройка делителей шин: AHB = 1 (216MHz), APB1 = 4 (54MHz), APB2 = 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 4
-
-
-  54:Core/src/init.c ****     RCC->CFGR |= RCC_CFGR_HPRE_DIV1 |
- 120              		.loc 1 54 5 is_stmt 1 view .LVU39
- 121              		.loc 1 54 8 is_stmt 0 view .LVU40
- 122 0072 084B     		ldr	r3, .L7
- 123 0074 9A68     		ldr	r2, [r3, #8]
- 124              		.loc 1 54 15 view .LVU41
- 125 0076 42F41442 		orr	r2, r2, #37888
- 126 007a 9A60     		str	r2, [r3, #8]
-  55:Core/src/init.c ****                  RCC_CFGR_PPRE1_DIV4 |
-  56:Core/src/init.c ****                  RCC_CFGR_PPRE2_DIV2;
-  57:Core/src/init.c **** 
-  58:Core/src/init.c ****     // Переключаем системное тактирование на PLL
-  59:Core/src/init.c ****     RCC->CFGR |= RCC_CFGR_SW_PLL;
- 127              		.loc 1 59 5 is_stmt 1 view .LVU42
- 128              		.loc 1 59 8 is_stmt 0 view .LVU43
- 129 007c 9A68     		ldr	r2, [r3, #8]
- 130              		.loc 1 59 15 view .LVU44
- 131 007e 42F00202 		orr	r2, r2, #2
- 132 0082 9A60     		str	r2, [r3, #8]
-  60:Core/src/init.c ****     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
- 133              		.loc 1 60 5 is_stmt 1 view .LVU45
- 134              	.L6:
- 135              		.loc 1 60 39 discriminator 1 view .LVU46
- 136              		.loc 1 60 16 is_stmt 0 discriminator 1 view .LVU47
- 137 0084 034B     		ldr	r3, .L7
- 138 0086 9B68     		ldr	r3, [r3, #8]
- 139              		.loc 1 60 23 discriminator 1 view .LVU48
- 140 0088 03F00C03 		and	r3, r3, #12
- 141              		.loc 1 60 39 discriminator 1 view .LVU49
- 142 008c 082B     		cmp	r3, #8
- 143 008e F9D1     		bne	.L6
-  61:Core/src/init.c ****         ;
-  62:Core/src/init.c **** }
- 144              		.loc 1 62 1 view .LVU50
- 145 0090 7047     		bx	lr
- 146              	.L8:
- 147 0092 00BF     		.align	2
- 148              	.L7:
- 149 0094 00380240 		.word	1073887232
- 150 0098 00700040 		.word	1073770496
- 151 009c 003C0240 		.word	1073888256
- 152 00a0 086C4009 		.word	155216904
- 153              		.cfi_endproc
- 154              	.LFE141:
- 156              		.section	.text.SysTick_Init_Config,"ax",%progbits
- 157              		.align	1
- 158              		.global	SysTick_Init_Config
- 159              		.syntax unified
- 160              		.thumb
- 161              		.thumb_func
- 163              	SysTick_Init_Config:
- 164              	.LFB142:
-  63:Core/src/init.c **** 
-  64:Core/src/init.c **** /**
-  65:Core/src/init.c ****  * @brief SysTick на 1 кГц — "сердце" всей временной логики.
-  66:Core/src/init.c ****  *
-  67:Core/src/init.c ****  * В SysTick_Handler обрабатываются:
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 5
-
-
-  68:Core/src/init.c ****  *  - дебаунс/удержание кнопки PC13 (FSM);
-  69:Core/src/init.c ****  *  - отсчёт времени отсутствия пассажиров PIR.
-  70:Core/src/init.c ****  *
-  71:Core/src/init.c ****  * LOAD = 216000 - 1 = 215999, источник — AHB без деления.
-  72:Core/src/init.c ****  */
-  73:Core/src/init.c **** void SysTick_Init_Config(void)
-  74:Core/src/init.c **** {
- 165              		.loc 1 74 1 is_stmt 1 view -0
- 166              		.cfi_startproc
- 167              		@ args = 0, pretend = 0, frame = 0
- 168              		@ frame_needed = 0, uses_anonymous_args = 0
- 169              		@ link register save eliminated.
-  75:Core/src/init.c ****     CLEAR_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);  // На всякий случай, пред
- 170              		.loc 1 75 5 view .LVU52
- 171 0000 4FF0E023 		mov	r3, #-536813568
- 172 0004 1A69     		ldr	r2, [r3, #16]
- 173 0006 22F00102 		bic	r2, r2, #1
- 174 000a 1A61     		str	r2, [r3, #16]
-  76:Core/src/init.c ****     SET_BIT(SysTick->CTRL, SysTick_CTRL_TICKINT_Msk);   // Разрешаем прерывание 
- 175              		.loc 1 76 5 view .LVU53
- 176 000c 1A69     		ldr	r2, [r3, #16]
- 177 000e 42F00202 		orr	r2, r2, #2
- 178 0012 1A61     		str	r2, [r3, #16]
-  77:Core/src/init.c ****     SET_BIT(SysTick->CTRL, SysTick_CTRL_CLKSOURCE_Msk); // Источник тактировани�
- 179              		.loc 1 77 5 view .LVU54
- 180 0014 1A69     		ldr	r2, [r3, #16]
- 181 0016 42F00402 		orr	r2, r2, #4
- 182 001a 1A61     		str	r2, [r3, #16]
-  78:Core/src/init.c ****     MODIFY_REG(SysTick->LOAD, SysTick_LOAD_RELOAD_Msk,
- 183              		.loc 1 78 5 view .LVU55
- 184 001c 5969     		ldr	r1, [r3, #20]
- 185 001e 01F07F41 		and	r1, r1, #-16777216
- 186 0022 074A     		ldr	r2, .L10
- 187 0024 0A43     		orrs	r2, r2, r1
- 188 0026 5A61     		str	r2, [r3, #20]
-  79:Core/src/init.c ****                215999 << SysTick_LOAD_RELOAD_Pos);      // Значение с которого н�
-  80:Core/src/init.c ****     CLEAR_REG(SysTick->VAL);     // Очистка поля
- 189              		.loc 1 80 5 view .LVU56
- 190 0028 0022     		movs	r2, #0
- 191 002a 9A61     		str	r2, [r3, #24]
-  81:Core/src/init.c ****     SET_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);    // Включим счётчик
- 192              		.loc 1 81 5 view .LVU57
- 193 002c 1A69     		ldr	r2, [r3, #16]
- 194 002e 42F00102 		orr	r2, r2, #1
- 195 0032 1A61     		str	r2, [r3, #16]
-  82:Core/src/init.c **** 
-  83:Core/src/init.c ****     NVIC_SetPriority(SysTick_IRQn, 4);
- 196              		.loc 1 83 5 view .LVU58
- 197              	.LVL0:
- 198              	.LBB16:
- 199              	.LBI16:
- 200              		.file 2 "CMSIS/Include/core_cm7.h"
+  43              		.loc 1 16 5 view .LVU3
+  44 0014 1A69     		ldr	r2, [r3, #16]
+  45 0016 42F00402 		orr	r2, r2, #4
+  46 001a 1A61     		str	r2, [r3, #16]
+  17:Core/peripherials/src/sys_tim.c ****     MODIFY_REG(SysTick->LOAD, SysTick_LOAD_RELOAD_Msk,
+  47              		.loc 1 17 5 view .LVU4
+  48 001c 5969     		ldr	r1, [r3, #20]
+  49 001e 01F07F41 		and	r1, r1, #-16777216
+  50 0022 074A     		ldr	r2, .L2
+  51 0024 0A43     		orrs	r2, r2, r1
+  52 0026 5A61     		str	r2, [r3, #20]
+  18:Core/peripherials/src/sys_tim.c ****                215999 << SysTick_LOAD_RELOAD_Pos);      // Значение с которого н�
+  19:Core/peripherials/src/sys_tim.c ****     CLEAR_REG(SysTick->VAL);     // Очистка поля
+  53              		.loc 1 19 5 view .LVU5
+  54 0028 0022     		movs	r2, #0
+  55 002a 9A61     		str	r2, [r3, #24]
+  20:Core/peripherials/src/sys_tim.c ****     SET_BIT(SysTick->CTRL, SysTick_CTRL_ENABLE_Msk);    // Включим счётчик
+  56              		.loc 1 20 5 view .LVU6
+  57 002c 1A69     		ldr	r2, [r3, #16]
+  58 002e 42F00102 		orr	r2, r2, #1
+  59 0032 1A61     		str	r2, [r3, #16]
+  21:Core/peripherials/src/sys_tim.c **** 
+  22:Core/peripherials/src/sys_tim.c ****     NVIC_SetPriority(SysTick_IRQn, 4);
+  60              		.loc 1 22 5 view .LVU7
+  61              	.LVL0:
+  62              	.LBB4:
+  63              	.LBI4:
+  64              		.file 2 "CMSIS/Include/core_cm7.h"
    1:CMSIS/Include/core_cm7.h **** /**************************************************************************//**
    2:CMSIS/Include/core_cm7.h ****  * @file     core_cm7.h
    3:CMSIS/Include/core_cm7.h ****  * @brief    CMSIS Cortex-M7 Core Peripheral Access Layer Header File
    4:CMSIS/Include/core_cm7.h ****  * @version  V5.0.8
    5:CMSIS/Include/core_cm7.h ****  * @date     04. June 2018
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 6
-
-
    6:CMSIS/Include/core_cm7.h ****  ******************************************************************************/
    7:CMSIS/Include/core_cm7.h **** /*
    8:CMSIS/Include/core_cm7.h ****  * Copyright (c) 2009-2018 Arm Limited. All rights reserved.
@@ -325,6 +118,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
   27:CMSIS/Include/core_cm7.h **** #elif defined (__clang__)
   28:CMSIS/Include/core_cm7.h ****   #pragma clang system_header   /* treat file as system include file */
   29:CMSIS/Include/core_cm7.h **** #endif
+ARM GAS  /tmp/ccluEM3J.s 			page 3
+
+
   30:CMSIS/Include/core_cm7.h **** 
   31:CMSIS/Include/core_cm7.h **** #ifndef __CORE_CM7_H_GENERIC
   32:CMSIS/Include/core_cm7.h **** #define __CORE_CM7_H_GENERIC
@@ -358,9 +154,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
   60:CMSIS/Include/core_cm7.h ****   @{
   61:CMSIS/Include/core_cm7.h ****  */
   62:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 7
-
-
   63:CMSIS/Include/core_cm7.h **** #include "cmsis_version.h"
   64:CMSIS/Include/core_cm7.h **** 
   65:CMSIS/Include/core_cm7.h **** /* CMSIS CM7 definitions */
@@ -385,6 +178,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
   84:CMSIS/Include/core_cm7.h ****   #else
   85:CMSIS/Include/core_cm7.h ****     #define __FPU_USED         0U
   86:CMSIS/Include/core_cm7.h ****   #endif
+ARM GAS  /tmp/ccluEM3J.s 			page 4
+
+
   87:CMSIS/Include/core_cm7.h **** 
   88:CMSIS/Include/core_cm7.h **** #elif defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050)
   89:CMSIS/Include/core_cm7.h ****   #if defined __ARM_PCS_VFP
@@ -418,9 +214,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  117:CMSIS/Include/core_cm7.h ****       #error "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)
  118:CMSIS/Include/core_cm7.h ****       #define __FPU_USED       0U
  119:CMSIS/Include/core_cm7.h ****     #endif
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 8
-
-
  120:CMSIS/Include/core_cm7.h ****   #else
  121:CMSIS/Include/core_cm7.h ****     #define __FPU_USED         0U
  122:CMSIS/Include/core_cm7.h ****   #endif
@@ -445,6 +238,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  141:CMSIS/Include/core_cm7.h ****       #error "Compiler generates FPU instructions for a device without an FPU (check __FPU_PRESENT)
  142:CMSIS/Include/core_cm7.h ****       #define __FPU_USED       0U
  143:CMSIS/Include/core_cm7.h ****     #endif
+ARM GAS  /tmp/ccluEM3J.s 			page 5
+
+
  144:CMSIS/Include/core_cm7.h ****   #else
  145:CMSIS/Include/core_cm7.h ****     #define __FPU_USED         0U
  146:CMSIS/Include/core_cm7.h ****   #endif
@@ -478,9 +274,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  174:CMSIS/Include/core_cm7.h **** #define __CORE_CM7_H_DEPENDANT
  175:CMSIS/Include/core_cm7.h **** 
  176:CMSIS/Include/core_cm7.h **** #ifdef __cplusplus
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 9
-
-
  177:CMSIS/Include/core_cm7.h ****  extern "C" {
  178:CMSIS/Include/core_cm7.h **** #endif
  179:CMSIS/Include/core_cm7.h **** 
@@ -505,6 +298,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  198:CMSIS/Include/core_cm7.h ****     #define __ICACHE_PRESENT          0U
  199:CMSIS/Include/core_cm7.h ****     #warning "__ICACHE_PRESENT not defined in device header file; using default!"
  200:CMSIS/Include/core_cm7.h ****   #endif
+ARM GAS  /tmp/ccluEM3J.s 			page 6
+
+
  201:CMSIS/Include/core_cm7.h **** 
  202:CMSIS/Include/core_cm7.h ****   #ifndef __DCACHE_PRESENT
  203:CMSIS/Include/core_cm7.h ****     #define __DCACHE_PRESENT          0U
@@ -538,9 +334,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  231:CMSIS/Include/core_cm7.h **** #ifdef __cplusplus
  232:CMSIS/Include/core_cm7.h ****   #define   __I     volatile             /*!< Defines 'read only' permissions */
  233:CMSIS/Include/core_cm7.h **** #else
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 10
-
-
  234:CMSIS/Include/core_cm7.h ****   #define   __I     volatile const       /*!< Defines 'read only' permissions */
  235:CMSIS/Include/core_cm7.h **** #endif
  236:CMSIS/Include/core_cm7.h **** #define     __O     volatile             /*!< Defines 'write only' permissions */
@@ -565,6 +358,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  255:CMSIS/Include/core_cm7.h ****   - Core Debug Register
  256:CMSIS/Include/core_cm7.h ****   - Core MPU Register
  257:CMSIS/Include/core_cm7.h ****   - Core FPU Register
+ARM GAS  /tmp/ccluEM3J.s 			page 7
+
+
  258:CMSIS/Include/core_cm7.h ****  ******************************************************************************/
  259:CMSIS/Include/core_cm7.h **** /**
  260:CMSIS/Include/core_cm7.h ****   \defgroup CMSIS_core_register Defines and Type Definitions
@@ -598,9 +394,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  288:CMSIS/Include/core_cm7.h **** } APSR_Type;
  289:CMSIS/Include/core_cm7.h **** 
  290:CMSIS/Include/core_cm7.h **** /* APSR Register Definitions */
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 11
-
-
  291:CMSIS/Include/core_cm7.h **** #define APSR_N_Pos                         31U                                            /*!< APSR
  292:CMSIS/Include/core_cm7.h **** #define APSR_N_Msk                         (1UL << APSR_N_Pos)                            /*!< APSR
  293:CMSIS/Include/core_cm7.h **** 
@@ -625,6 +418,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  312:CMSIS/Include/core_cm7.h ****  */
  313:CMSIS/Include/core_cm7.h **** typedef union
  314:CMSIS/Include/core_cm7.h **** {
+ARM GAS  /tmp/ccluEM3J.s 			page 8
+
+
  315:CMSIS/Include/core_cm7.h ****   struct
  316:CMSIS/Include/core_cm7.h ****   {
  317:CMSIS/Include/core_cm7.h ****     uint32_t ISR:9;                      /*!< bit:  0.. 8  Exception number */
@@ -658,9 +454,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  345:CMSIS/Include/core_cm7.h ****     uint32_t Z:1;                        /*!< bit:     30  Zero condition code flag */
  346:CMSIS/Include/core_cm7.h ****     uint32_t N:1;                        /*!< bit:     31  Negative condition code flag */
  347:CMSIS/Include/core_cm7.h ****   } b;                                   /*!< Structure used for bit  access */
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 12
-
-
  348:CMSIS/Include/core_cm7.h ****   uint32_t w;                            /*!< Type      used for word access */
  349:CMSIS/Include/core_cm7.h **** } xPSR_Type;
  350:CMSIS/Include/core_cm7.h **** 
@@ -685,6 +478,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  369:CMSIS/Include/core_cm7.h **** 
  370:CMSIS/Include/core_cm7.h **** #define xPSR_T_Pos                         24U                                            /*!< xPSR
  371:CMSIS/Include/core_cm7.h **** #define xPSR_T_Msk                         (1UL << xPSR_T_Pos)                            /*!< xPSR
+ARM GAS  /tmp/ccluEM3J.s 			page 9
+
+
  372:CMSIS/Include/core_cm7.h **** 
  373:CMSIS/Include/core_cm7.h **** #define xPSR_GE_Pos                        16U                                            /*!< xPSR
  374:CMSIS/Include/core_cm7.h **** #define xPSR_GE_Msk                        (0xFUL << xPSR_GE_Pos)                         /*!< xPSR
@@ -718,9 +514,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  402:CMSIS/Include/core_cm7.h **** #define CONTROL_SPSEL_Pos                   1U                                            /*!< CONT
  403:CMSIS/Include/core_cm7.h **** #define CONTROL_SPSEL_Msk                  (1UL << CONTROL_SPSEL_Pos)                     /*!< CONT
  404:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 13
-
-
  405:CMSIS/Include/core_cm7.h **** #define CONTROL_nPRIV_Pos                   0U                                            /*!< CONT
  406:CMSIS/Include/core_cm7.h **** #define CONTROL_nPRIV_Msk                  (1UL /*<< CONTROL_nPRIV_Pos*/)                 /*!< CONT
  407:CMSIS/Include/core_cm7.h **** 
@@ -745,6 +538,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  426:CMSIS/Include/core_cm7.h ****         uint32_t RSERVED1[24U];
  427:CMSIS/Include/core_cm7.h ****   __IOM uint32_t ISPR[8U];               /*!< Offset: 0x100 (R/W)  Interrupt Set Pending Register *
  428:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED2[24U];
+ARM GAS  /tmp/ccluEM3J.s 			page 10
+
+
  429:CMSIS/Include/core_cm7.h ****   __IOM uint32_t ICPR[8U];               /*!< Offset: 0x180 (R/W)  Interrupt Clear Pending Register
  430:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED3[24U];
  431:CMSIS/Include/core_cm7.h ****   __IOM uint32_t IABR[8U];               /*!< Offset: 0x200 (R/W)  Interrupt Active bit Register */
@@ -778,9 +574,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  459:CMSIS/Include/core_cm7.h ****   __IOM uint32_t VTOR;                   /*!< Offset: 0x008 (R/W)  Vector Table Offset Register */
  460:CMSIS/Include/core_cm7.h ****   __IOM uint32_t AIRCR;                  /*!< Offset: 0x00C (R/W)  Application Interrupt and Reset 
  461:CMSIS/Include/core_cm7.h ****   __IOM uint32_t SCR;                    /*!< Offset: 0x010 (R/W)  System Control Register */
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 14
-
-
  462:CMSIS/Include/core_cm7.h ****   __IOM uint32_t CCR;                    /*!< Offset: 0x014 (R/W)  Configuration Control Register *
  463:CMSIS/Include/core_cm7.h ****   __IOM uint8_t  SHPR[12U];              /*!< Offset: 0x018 (R/W)  System Handlers Priority Registe
  464:CMSIS/Include/core_cm7.h ****   __IOM uint32_t SHCSR;                  /*!< Offset: 0x024 (R/W)  System Handler Control and State
@@ -805,6 +598,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  483:CMSIS/Include/core_cm7.h ****   __OM  uint32_t STIR;                   /*!< Offset: 0x200 ( /W)  Software Triggered Interrupt Reg
  484:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED4[15U];
  485:CMSIS/Include/core_cm7.h ****   __IM  uint32_t MVFR0;                  /*!< Offset: 0x240 (R/ )  Media and VFP Feature Register 0
+ARM GAS  /tmp/ccluEM3J.s 			page 11
+
+
  486:CMSIS/Include/core_cm7.h ****   __IM  uint32_t MVFR1;                  /*!< Offset: 0x244 (R/ )  Media and VFP Feature Register 1
  487:CMSIS/Include/core_cm7.h ****   __IM  uint32_t MVFR2;                  /*!< Offset: 0x248 (R/ )  Media and VFP Feature Register 2
  488:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED5[1U];
@@ -838,9 +634,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  516:CMSIS/Include/core_cm7.h **** #define SCB_CPUID_ARCHITECTURE_Pos         16U                                            /*!< SCB 
  517:CMSIS/Include/core_cm7.h **** #define SCB_CPUID_ARCHITECTURE_Msk         (0xFUL << SCB_CPUID_ARCHITECTURE_Pos)          /*!< SCB 
  518:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 15
-
-
  519:CMSIS/Include/core_cm7.h **** #define SCB_CPUID_PARTNO_Pos                4U                                            /*!< SCB 
  520:CMSIS/Include/core_cm7.h **** #define SCB_CPUID_PARTNO_Msk               (0xFFFUL << SCB_CPUID_PARTNO_Pos)              /*!< SCB 
  521:CMSIS/Include/core_cm7.h **** 
@@ -865,6 +658,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  540:CMSIS/Include/core_cm7.h **** 
  541:CMSIS/Include/core_cm7.h **** #define SCB_ICSR_ISRPREEMPT_Pos            23U                                            /*!< SCB 
  542:CMSIS/Include/core_cm7.h **** #define SCB_ICSR_ISRPREEMPT_Msk            (1UL << SCB_ICSR_ISRPREEMPT_Pos)               /*!< SCB 
+ARM GAS  /tmp/ccluEM3J.s 			page 12
+
+
  543:CMSIS/Include/core_cm7.h **** 
  544:CMSIS/Include/core_cm7.h **** #define SCB_ICSR_ISRPENDING_Pos            22U                                            /*!< SCB 
  545:CMSIS/Include/core_cm7.h **** #define SCB_ICSR_ISRPENDING_Msk            (1UL << SCB_ICSR_ISRPENDING_Pos)               /*!< SCB 
@@ -898,9 +694,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  573:CMSIS/Include/core_cm7.h **** #define SCB_AIRCR_SYSRESETREQ_Pos           2U                                            /*!< SCB 
  574:CMSIS/Include/core_cm7.h **** #define SCB_AIRCR_SYSRESETREQ_Msk          (1UL << SCB_AIRCR_SYSRESETREQ_Pos)             /*!< SCB 
  575:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 16
-
-
  576:CMSIS/Include/core_cm7.h **** #define SCB_AIRCR_VECTCLRACTIVE_Pos         1U                                            /*!< SCB 
  577:CMSIS/Include/core_cm7.h **** #define SCB_AIRCR_VECTCLRACTIVE_Msk        (1UL << SCB_AIRCR_VECTCLRACTIVE_Pos)           /*!< SCB 
  578:CMSIS/Include/core_cm7.h **** 
@@ -925,6 +718,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  597:CMSIS/Include/core_cm7.h **** #define SCB_CCR_IC_Msk                     (1UL << SCB_CCR_IC_Pos)                        /*!< SCB 
  598:CMSIS/Include/core_cm7.h **** 
  599:CMSIS/Include/core_cm7.h **** #define SCB_CCR_DC_Pos                      16U                                           /*!< SCB 
+ARM GAS  /tmp/ccluEM3J.s 			page 13
+
+
  600:CMSIS/Include/core_cm7.h **** #define SCB_CCR_DC_Msk                     (1UL << SCB_CCR_DC_Pos)                        /*!< SCB 
  601:CMSIS/Include/core_cm7.h **** 
  602:CMSIS/Include/core_cm7.h **** #define SCB_CCR_STKALIGN_Pos                9U                                            /*!< SCB 
@@ -958,9 +754,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  630:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_SVCALLPENDED_Pos         15U                                            /*!< SCB 
  631:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_SVCALLPENDED_Msk         (1UL << SCB_SHCSR_SVCALLPENDED_Pos)            /*!< SCB 
  632:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 17
-
-
  633:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_BUSFAULTPENDED_Pos       14U                                            /*!< SCB 
  634:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_BUSFAULTPENDED_Msk       (1UL << SCB_SHCSR_BUSFAULTPENDED_Pos)          /*!< SCB 
  635:CMSIS/Include/core_cm7.h **** 
@@ -985,6 +778,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  654:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_USGFAULTACT_Pos           3U                                            /*!< SCB 
  655:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_USGFAULTACT_Msk          (1UL << SCB_SHCSR_USGFAULTACT_Pos)             /*!< SCB 
  656:CMSIS/Include/core_cm7.h **** 
+ARM GAS  /tmp/ccluEM3J.s 			page 14
+
+
  657:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_BUSFAULTACT_Pos           1U                                            /*!< SCB 
  658:CMSIS/Include/core_cm7.h **** #define SCB_SHCSR_BUSFAULTACT_Msk          (1UL << SCB_SHCSR_BUSFAULTACT_Pos)             /*!< SCB 
  659:CMSIS/Include/core_cm7.h **** 
@@ -1018,9 +814,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  687:CMSIS/Include/core_cm7.h **** #define SCB_CFSR_DACCVIOL_Msk              (1UL << SCB_CFSR_DACCVIOL_Pos)                 /*!< SCB 
  688:CMSIS/Include/core_cm7.h **** 
  689:CMSIS/Include/core_cm7.h **** #define SCB_CFSR_IACCVIOL_Pos              (SCB_SHCSR_MEMFAULTACT_Pos + 0U)               /*!< SCB 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 18
-
-
  690:CMSIS/Include/core_cm7.h **** #define SCB_CFSR_IACCVIOL_Msk              (1UL /*<< SCB_CFSR_IACCVIOL_Pos*/)             /*!< SCB 
  691:CMSIS/Include/core_cm7.h **** 
  692:CMSIS/Include/core_cm7.h **** /* BusFault Status Register (part of SCB Configurable Fault Status Register) */
@@ -1045,6 +838,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  711:CMSIS/Include/core_cm7.h **** #define SCB_CFSR_IBUSERR_Pos              (SCB_CFSR_BUSFAULTSR_Pos + 0U)                  /*!< SCB 
  712:CMSIS/Include/core_cm7.h **** #define SCB_CFSR_IBUSERR_Msk              (1UL << SCB_CFSR_IBUSERR_Pos)                   /*!< SCB 
  713:CMSIS/Include/core_cm7.h **** 
+ARM GAS  /tmp/ccluEM3J.s 			page 15
+
+
  714:CMSIS/Include/core_cm7.h **** /* UsageFault Status Register (part of SCB Configurable Fault Status Register) */
  715:CMSIS/Include/core_cm7.h **** #define SCB_CFSR_DIVBYZERO_Pos            (SCB_CFSR_USGFAULTSR_Pos + 9U)                  /*!< SCB 
  716:CMSIS/Include/core_cm7.h **** #define SCB_CFSR_DIVBYZERO_Msk            (1UL << SCB_CFSR_DIVBYZERO_Pos)                 /*!< SCB 
@@ -1078,9 +874,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  744:CMSIS/Include/core_cm7.h **** #define SCB_DFSR_EXTERNAL_Pos               4U                                            /*!< SCB 
  745:CMSIS/Include/core_cm7.h **** #define SCB_DFSR_EXTERNAL_Msk              (1UL << SCB_DFSR_EXTERNAL_Pos)                 /*!< SCB 
  746:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 19
-
-
  747:CMSIS/Include/core_cm7.h **** #define SCB_DFSR_VCATCH_Pos                 3U                                            /*!< SCB 
  748:CMSIS/Include/core_cm7.h **** #define SCB_DFSR_VCATCH_Msk                (1UL << SCB_DFSR_VCATCH_Pos)                   /*!< SCB 
  749:CMSIS/Include/core_cm7.h **** 
@@ -1105,6 +898,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  768:CMSIS/Include/core_cm7.h **** #define SCB_CTR_FORMAT_Msk                 (7UL << SCB_CTR_FORMAT_Pos)                    /*!< SCB 
  769:CMSIS/Include/core_cm7.h **** 
  770:CMSIS/Include/core_cm7.h **** #define SCB_CTR_CWG_Pos                    24U                                            /*!< SCB 
+ARM GAS  /tmp/ccluEM3J.s 			page 16
+
+
  771:CMSIS/Include/core_cm7.h **** #define SCB_CTR_CWG_Msk                    (0xFUL << SCB_CTR_CWG_Pos)                     /*!< SCB 
  772:CMSIS/Include/core_cm7.h **** 
  773:CMSIS/Include/core_cm7.h **** #define SCB_CTR_ERG_Pos                    20U                                            /*!< SCB 
@@ -1138,9 +934,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  801:CMSIS/Include/core_cm7.h **** #define SCB_CCSIDR_LINESIZE_Pos             0U                                            /*!< SCB 
  802:CMSIS/Include/core_cm7.h **** #define SCB_CCSIDR_LINESIZE_Msk            (7UL /*<< SCB_CCSIDR_LINESIZE_Pos*/)           /*!< SCB 
  803:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 20
-
-
  804:CMSIS/Include/core_cm7.h **** /* SCB Cache Size Selection Register Definitions */
  805:CMSIS/Include/core_cm7.h **** #define SCB_CSSELR_LEVEL_Pos                1U                                            /*!< SCB 
  806:CMSIS/Include/core_cm7.h **** #define SCB_CSSELR_LEVEL_Msk               (7UL << SCB_CSSELR_LEVEL_Pos)                  /*!< SCB 
@@ -1165,6 +958,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  825:CMSIS/Include/core_cm7.h **** 
  826:CMSIS/Include/core_cm7.h **** #define SCB_DCCSW_SET_Pos                   5U                                            /*!< SCB 
  827:CMSIS/Include/core_cm7.h **** #define SCB_DCCSW_SET_Msk                  (0x1FFUL << SCB_DCCSW_SET_Pos)                 /*!< SCB 
+ARM GAS  /tmp/ccluEM3J.s 			page 17
+
+
  828:CMSIS/Include/core_cm7.h **** 
  829:CMSIS/Include/core_cm7.h **** /* SCB D-Cache Clean and Invalidate by Set-way Register Definitions */
  830:CMSIS/Include/core_cm7.h **** #define SCB_DCCISW_WAY_Pos                 30U                                            /*!< SCB 
@@ -1198,9 +994,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  858:CMSIS/Include/core_cm7.h **** 
  859:CMSIS/Include/core_cm7.h **** #define SCB_DTCMCR_EN_Pos                   0U                                            /*!< SCB 
  860:CMSIS/Include/core_cm7.h **** #define SCB_DTCMCR_EN_Msk                  (1UL /*<< SCB_DTCMCR_EN_Pos*/)                 /*!< SCB 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 21
-
-
  861:CMSIS/Include/core_cm7.h **** 
  862:CMSIS/Include/core_cm7.h **** /* AHBP Control Register Definitions */
  863:CMSIS/Include/core_cm7.h **** #define SCB_AHBPCR_SZ_Pos                   1U                                            /*!< SCB 
@@ -1225,6 +1018,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  882:CMSIS/Include/core_cm7.h **** 
  883:CMSIS/Include/core_cm7.h **** #define SCB_AHBSCR_TPRI_Pos                 2U                                            /*!< SCB 
  884:CMSIS/Include/core_cm7.h **** #define SCB_AHBSCR_TPRI_Msk                (0x1FFUL << SCB_AHBPCR_TPRI_Pos)               /*!< SCB 
+ARM GAS  /tmp/ccluEM3J.s 			page 18
+
+
  885:CMSIS/Include/core_cm7.h **** 
  886:CMSIS/Include/core_cm7.h **** #define SCB_AHBSCR_CTL_Pos                  0U                                            /*!< SCB 
  887:CMSIS/Include/core_cm7.h **** #define SCB_AHBSCR_CTL_Msk                 (3UL /*<< SCB_AHBPCR_CTL_Pos*/)                /*!< SCB 
@@ -1258,9 +1054,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  915:CMSIS/Include/core_cm7.h ****   @{
  916:CMSIS/Include/core_cm7.h ****  */
  917:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 22
-
-
  918:CMSIS/Include/core_cm7.h **** /**
  919:CMSIS/Include/core_cm7.h ****   \brief  Structure type to access the System Control and ID Register not in the SCB.
  920:CMSIS/Include/core_cm7.h ****  */
@@ -1285,6 +1078,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  939:CMSIS/Include/core_cm7.h **** #define SCnSCB_ACTLR_FPEXCODIS_Pos         10U                                         /*!< ACTLR: 
  940:CMSIS/Include/core_cm7.h **** #define SCnSCB_ACTLR_FPEXCODIS_Msk         (1UL << SCnSCB_ACTLR_FPEXCODIS_Pos)         /*!< ACTLR: 
  941:CMSIS/Include/core_cm7.h **** 
+ARM GAS  /tmp/ccluEM3J.s 			page 19
+
+
  942:CMSIS/Include/core_cm7.h **** #define SCnSCB_ACTLR_DISFOLD_Pos            2U                                         /*!< ACTLR: 
  943:CMSIS/Include/core_cm7.h **** #define SCnSCB_ACTLR_DISFOLD_Msk           (1UL << SCnSCB_ACTLR_DISFOLD_Pos)           /*!< ACTLR: 
  944:CMSIS/Include/core_cm7.h **** 
@@ -1318,9 +1114,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  972:CMSIS/Include/core_cm7.h **** 
  973:CMSIS/Include/core_cm7.h **** #define SysTick_CTRL_CLKSOURCE_Pos          2U                                            /*!< SysT
  974:CMSIS/Include/core_cm7.h **** #define SysTick_CTRL_CLKSOURCE_Msk         (1UL << SysTick_CTRL_CLKSOURCE_Pos)            /*!< SysT
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 23
-
-
  975:CMSIS/Include/core_cm7.h **** 
  976:CMSIS/Include/core_cm7.h **** #define SysTick_CTRL_TICKINT_Pos            1U                                            /*!< SysT
  977:CMSIS/Include/core_cm7.h **** #define SysTick_CTRL_TICKINT_Msk           (1UL << SysTick_CTRL_TICKINT_Pos)              /*!< SysT
@@ -1345,6 +1138,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
  996:CMSIS/Include/core_cm7.h **** 
  997:CMSIS/Include/core_cm7.h **** #define SysTick_CALIB_TENMS_Pos             0U                                            /*!< SysT
  998:CMSIS/Include/core_cm7.h **** #define SysTick_CALIB_TENMS_Msk            (0xFFFFFFUL /*<< SysTick_CALIB_TENMS_Pos*/)    /*!< SysT
+ARM GAS  /tmp/ccluEM3J.s 			page 20
+
+
  999:CMSIS/Include/core_cm7.h **** 
 1000:CMSIS/Include/core_cm7.h **** /*@} end of group CMSIS_SysTick */
 1001:CMSIS/Include/core_cm7.h **** 
@@ -1378,9 +1174,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1029:CMSIS/Include/core_cm7.h ****   __IM  uint32_t IRR;                    /*!< Offset: 0xEFC (R/ )  ITM Integration Read Register */
 1030:CMSIS/Include/core_cm7.h ****   __IOM uint32_t IMCR;                   /*!< Offset: 0xF00 (R/W)  ITM Integration Mode Control Reg
 1031:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED4[43U];
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 24
-
-
 1032:CMSIS/Include/core_cm7.h ****   __OM  uint32_t LAR;                    /*!< Offset: 0xFB0 ( /W)  ITM Lock Access Register */
 1033:CMSIS/Include/core_cm7.h ****   __IM  uint32_t LSR;                    /*!< Offset: 0xFB4 (R/ )  ITM Lock Status Register */
 1034:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED5[6U];
@@ -1405,6 +1198,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1053:CMSIS/Include/core_cm7.h **** /* ITM Trace Control Register Definitions */
 1054:CMSIS/Include/core_cm7.h **** #define ITM_TCR_BUSY_Pos                   23U                                            /*!< ITM 
 1055:CMSIS/Include/core_cm7.h **** #define ITM_TCR_BUSY_Msk                   (1UL << ITM_TCR_BUSY_Pos)                      /*!< ITM 
+ARM GAS  /tmp/ccluEM3J.s 			page 21
+
+
 1056:CMSIS/Include/core_cm7.h **** 
 1057:CMSIS/Include/core_cm7.h **** #define ITM_TCR_TraceBusID_Pos             16U                                            /*!< ITM 
 1058:CMSIS/Include/core_cm7.h **** #define ITM_TCR_TraceBusID_Msk             (0x7FUL << ITM_TCR_TraceBusID_Pos)             /*!< ITM 
@@ -1438,9 +1234,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1086:CMSIS/Include/core_cm7.h **** #define ITM_IRR_ATREADYM_Pos                0U                                            /*!< ITM 
 1087:CMSIS/Include/core_cm7.h **** #define ITM_IRR_ATREADYM_Msk               (1UL /*<< ITM_IRR_ATREADYM_Pos*/)              /*!< ITM 
 1088:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 25
-
-
 1089:CMSIS/Include/core_cm7.h **** /* ITM Integration Mode Control Register Definitions */
 1090:CMSIS/Include/core_cm7.h **** #define ITM_IMCR_INTEGRATION_Pos            0U                                            /*!< ITM 
 1091:CMSIS/Include/core_cm7.h **** #define ITM_IMCR_INTEGRATION_Msk           (1UL /*<< ITM_IMCR_INTEGRATION_Pos*/)          /*!< ITM 
@@ -1465,6 +1258,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1110:CMSIS/Include/core_cm7.h ****   @{
 1111:CMSIS/Include/core_cm7.h ****  */
 1112:CMSIS/Include/core_cm7.h **** 
+ARM GAS  /tmp/ccluEM3J.s 			page 22
+
+
 1113:CMSIS/Include/core_cm7.h **** /**
 1114:CMSIS/Include/core_cm7.h ****   \brief  Structure type to access the Data Watchpoint and Trace Register (DWT).
 1115:CMSIS/Include/core_cm7.h ****  */
@@ -1498,9 +1294,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1143:CMSIS/Include/core_cm7.h ****   __IM  uint32_t LSR;                    /*!< Offset: 0xFB4 (R  )  Lock Status Register */
 1144:CMSIS/Include/core_cm7.h **** } DWT_Type;
 1145:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 26
-
-
 1146:CMSIS/Include/core_cm7.h **** /* DWT Control Register Definitions */
 1147:CMSIS/Include/core_cm7.h **** #define DWT_CTRL_NUMCOMP_Pos               28U                                         /*!< DWT CTR
 1148:CMSIS/Include/core_cm7.h **** #define DWT_CTRL_NUMCOMP_Msk               (0xFUL << DWT_CTRL_NUMCOMP_Pos)             /*!< DWT CTR
@@ -1525,6 +1318,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1167:CMSIS/Include/core_cm7.h **** 
 1168:CMSIS/Include/core_cm7.h **** #define DWT_CTRL_LSUEVTENA_Pos             20U                                         /*!< DWT CTR
 1169:CMSIS/Include/core_cm7.h **** #define DWT_CTRL_LSUEVTENA_Msk             (0x1UL << DWT_CTRL_LSUEVTENA_Pos)           /*!< DWT CTR
+ARM GAS  /tmp/ccluEM3J.s 			page 23
+
+
 1170:CMSIS/Include/core_cm7.h **** 
 1171:CMSIS/Include/core_cm7.h **** #define DWT_CTRL_SLEEPEVTENA_Pos           19U                                         /*!< DWT CTR
 1172:CMSIS/Include/core_cm7.h **** #define DWT_CTRL_SLEEPEVTENA_Msk           (0x1UL << DWT_CTRL_SLEEPEVTENA_Pos)         /*!< DWT CTR
@@ -1558,9 +1354,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1200:CMSIS/Include/core_cm7.h **** 
 1201:CMSIS/Include/core_cm7.h **** /* DWT CPI Count Register Definitions */
 1202:CMSIS/Include/core_cm7.h **** #define DWT_CPICNT_CPICNT_Pos               0U                                         /*!< DWT CPI
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 27
-
-
 1203:CMSIS/Include/core_cm7.h **** #define DWT_CPICNT_CPICNT_Msk              (0xFFUL /*<< DWT_CPICNT_CPICNT_Pos*/)       /*!< DWT CPI
 1204:CMSIS/Include/core_cm7.h **** 
 1205:CMSIS/Include/core_cm7.h **** /* DWT Exception Overhead Count Register Definitions */
@@ -1585,6 +1378,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1224:CMSIS/Include/core_cm7.h **** 
 1225:CMSIS/Include/core_cm7.h **** /* DWT Comparator Function Register Definitions */
 1226:CMSIS/Include/core_cm7.h **** #define DWT_FUNCTION_MATCHED_Pos           24U                                         /*!< DWT FUN
+ARM GAS  /tmp/ccluEM3J.s 			page 24
+
+
 1227:CMSIS/Include/core_cm7.h **** #define DWT_FUNCTION_MATCHED_Msk           (0x1UL << DWT_FUNCTION_MATCHED_Pos)         /*!< DWT FUN
 1228:CMSIS/Include/core_cm7.h **** 
 1229:CMSIS/Include/core_cm7.h **** #define DWT_FUNCTION_DATAVADDR1_Pos        16U                                         /*!< DWT FUN
@@ -1618,9 +1414,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1257:CMSIS/Include/core_cm7.h ****   \ingroup  CMSIS_core_register
 1258:CMSIS/Include/core_cm7.h ****   \defgroup CMSIS_TPI     Trace Port Interface (TPI)
 1259:CMSIS/Include/core_cm7.h ****   \brief    Type definitions for the Trace Port Interface (TPI)
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 28
-
-
 1260:CMSIS/Include/core_cm7.h ****   @{
 1261:CMSIS/Include/core_cm7.h ****  */
 1262:CMSIS/Include/core_cm7.h **** 
@@ -1645,6 +1438,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1281:CMSIS/Include/core_cm7.h ****   __IM  uint32_t ITATBCTR2;              /*!< Offset: 0xEF0 (R/ )  ITATBCTR2 */
 1282:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED4[1U];
 1283:CMSIS/Include/core_cm7.h ****   __IM  uint32_t ITATBCTR0;              /*!< Offset: 0xEF8 (R/ )  ITATBCTR0 */
+ARM GAS  /tmp/ccluEM3J.s 			page 25
+
+
 1284:CMSIS/Include/core_cm7.h ****   __IM  uint32_t FIFO1;                  /*!< Offset: 0xEFC (R/ )  Integration ITM Data */
 1285:CMSIS/Include/core_cm7.h ****   __IOM uint32_t ITCTRL;                 /*!< Offset: 0xF00 (R/W)  Integration Mode Control */
 1286:CMSIS/Include/core_cm7.h ****         uint32_t RESERVED5[39U];
@@ -1678,9 +1474,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1314:CMSIS/Include/core_cm7.h **** 
 1315:CMSIS/Include/core_cm7.h **** /* TPI Formatter and Flush Control Register Definitions */
 1316:CMSIS/Include/core_cm7.h **** #define TPI_FFCR_TrigIn_Pos                 8U                                         /*!< TPI FFC
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 29
-
-
 1317:CMSIS/Include/core_cm7.h **** #define TPI_FFCR_TrigIn_Msk                (0x1UL << TPI_FFCR_TrigIn_Pos)              /*!< TPI FFC
 1318:CMSIS/Include/core_cm7.h **** 
 1319:CMSIS/Include/core_cm7.h **** #define TPI_FFCR_EnFCont_Pos                1U                                         /*!< TPI FFC
@@ -1705,6 +1498,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1338:CMSIS/Include/core_cm7.h **** 
 1339:CMSIS/Include/core_cm7.h **** #define TPI_FIFO0_ETM2_Pos                 16U                                         /*!< TPI FIF
 1340:CMSIS/Include/core_cm7.h **** #define TPI_FIFO0_ETM2_Msk                 (0xFFUL << TPI_FIFO0_ETM2_Pos)              /*!< TPI FIF
+ARM GAS  /tmp/ccluEM3J.s 			page 26
+
+
 1341:CMSIS/Include/core_cm7.h **** 
 1342:CMSIS/Include/core_cm7.h **** #define TPI_FIFO0_ETM1_Pos                  8U                                         /*!< TPI FIF
 1343:CMSIS/Include/core_cm7.h **** #define TPI_FIFO0_ETM1_Msk                 (0xFFUL << TPI_FIFO0_ETM1_Pos)              /*!< TPI FIF
@@ -1738,9 +1534,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1371:CMSIS/Include/core_cm7.h **** #define TPI_FIFO1_ITM1_Pos                  8U                                         /*!< TPI FIF
 1372:CMSIS/Include/core_cm7.h **** #define TPI_FIFO1_ITM1_Msk                 (0xFFUL << TPI_FIFO1_ITM1_Pos)              /*!< TPI FIF
 1373:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 30
-
-
 1374:CMSIS/Include/core_cm7.h **** #define TPI_FIFO1_ITM0_Pos                  0U                                         /*!< TPI FIF
 1375:CMSIS/Include/core_cm7.h **** #define TPI_FIFO1_ITM0_Msk                 (0xFFUL /*<< TPI_FIFO1_ITM0_Pos*/)          /*!< TPI FIF
 1376:CMSIS/Include/core_cm7.h **** 
@@ -1765,6 +1558,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1395:CMSIS/Include/core_cm7.h **** #define TPI_DEVID_PTINVALID_Pos             9U                                         /*!< TPI DEV
 1396:CMSIS/Include/core_cm7.h **** #define TPI_DEVID_PTINVALID_Msk            (0x1UL << TPI_DEVID_PTINVALID_Pos)          /*!< TPI DEV
 1397:CMSIS/Include/core_cm7.h **** 
+ARM GAS  /tmp/ccluEM3J.s 			page 27
+
+
 1398:CMSIS/Include/core_cm7.h **** #define TPI_DEVID_MinBufSz_Pos              6U                                         /*!< TPI DEV
 1399:CMSIS/Include/core_cm7.h **** #define TPI_DEVID_MinBufSz_Msk             (0x7UL << TPI_DEVID_MinBufSz_Pos)           /*!< TPI DEV
 1400:CMSIS/Include/core_cm7.h **** 
@@ -1798,9 +1594,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1428:CMSIS/Include/core_cm7.h **** typedef struct
 1429:CMSIS/Include/core_cm7.h **** {
 1430:CMSIS/Include/core_cm7.h ****   __IM  uint32_t TYPE;                   /*!< Offset: 0x000 (R/ )  MPU Type Register */
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 31
-
-
 1431:CMSIS/Include/core_cm7.h ****   __IOM uint32_t CTRL;                   /*!< Offset: 0x004 (R/W)  MPU Control Register */
 1432:CMSIS/Include/core_cm7.h ****   __IOM uint32_t RNR;                    /*!< Offset: 0x008 (R/W)  MPU Region RNRber Register */
 1433:CMSIS/Include/core_cm7.h ****   __IOM uint32_t RBAR;                   /*!< Offset: 0x00C (R/W)  MPU Region Base Address Register
@@ -1825,6 +1618,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1452:CMSIS/Include/core_cm7.h **** #define MPU_TYPE_SEPARATE_Pos               0U                                            /*!< MPU 
 1453:CMSIS/Include/core_cm7.h **** #define MPU_TYPE_SEPARATE_Msk              (1UL /*<< MPU_TYPE_SEPARATE_Pos*/)             /*!< MPU 
 1454:CMSIS/Include/core_cm7.h **** 
+ARM GAS  /tmp/ccluEM3J.s 			page 28
+
+
 1455:CMSIS/Include/core_cm7.h **** /* MPU Control Register Definitions */
 1456:CMSIS/Include/core_cm7.h **** #define MPU_CTRL_PRIVDEFENA_Pos             2U                                            /*!< MPU 
 1457:CMSIS/Include/core_cm7.h **** #define MPU_CTRL_PRIVDEFENA_Msk            (1UL << MPU_CTRL_PRIVDEFENA_Pos)               /*!< MPU 
@@ -1858,9 +1654,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1485:CMSIS/Include/core_cm7.h **** 
 1486:CMSIS/Include/core_cm7.h **** #define MPU_RASR_AP_Pos                    24U                                            /*!< MPU 
 1487:CMSIS/Include/core_cm7.h **** #define MPU_RASR_AP_Msk                    (0x7UL << MPU_RASR_AP_Pos)                     /*!< MPU 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 32
-
-
 1488:CMSIS/Include/core_cm7.h **** 
 1489:CMSIS/Include/core_cm7.h **** #define MPU_RASR_TEX_Pos                   19U                                            /*!< MPU 
 1490:CMSIS/Include/core_cm7.h **** #define MPU_RASR_TEX_Msk                   (0x7UL << MPU_RASR_TEX_Pos)                    /*!< MPU 
@@ -1885,6 +1678,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1509:CMSIS/Include/core_cm7.h **** 
 1510:CMSIS/Include/core_cm7.h **** /*@} end of group CMSIS_MPU */
 1511:CMSIS/Include/core_cm7.h **** #endif /* defined (__MPU_PRESENT) && (__MPU_PRESENT == 1U) */
+ARM GAS  /tmp/ccluEM3J.s 			page 29
+
+
 1512:CMSIS/Include/core_cm7.h **** 
 1513:CMSIS/Include/core_cm7.h **** 
 1514:CMSIS/Include/core_cm7.h **** /**
@@ -1918,9 +1714,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1542:CMSIS/Include/core_cm7.h **** #define FPU_FPCCR_MONRDY_Pos                8U                                            /*!< FPCC
 1543:CMSIS/Include/core_cm7.h **** #define FPU_FPCCR_MONRDY_Msk               (1UL << FPU_FPCCR_MONRDY_Pos)                  /*!< FPCC
 1544:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 33
-
-
 1545:CMSIS/Include/core_cm7.h **** #define FPU_FPCCR_BFRDY_Pos                 6U                                            /*!< FPCC
 1546:CMSIS/Include/core_cm7.h **** #define FPU_FPCCR_BFRDY_Msk                (1UL << FPU_FPCCR_BFRDY_Pos)                   /*!< FPCC
 1547:CMSIS/Include/core_cm7.h **** 
@@ -1945,6 +1738,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1566:CMSIS/Include/core_cm7.h **** 
 1567:CMSIS/Include/core_cm7.h **** /* Floating-Point Default Status Control Register Definitions */
 1568:CMSIS/Include/core_cm7.h **** #define FPU_FPDSCR_AHP_Pos                 26U                                            /*!< FPDS
+ARM GAS  /tmp/ccluEM3J.s 			page 30
+
+
 1569:CMSIS/Include/core_cm7.h **** #define FPU_FPDSCR_AHP_Msk                 (1UL << FPU_FPDSCR_AHP_Pos)                    /*!< FPDS
 1570:CMSIS/Include/core_cm7.h **** 
 1571:CMSIS/Include/core_cm7.h **** #define FPU_FPDSCR_DN_Pos                  25U                                            /*!< FPDS
@@ -1978,9 +1774,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1599:CMSIS/Include/core_cm7.h **** #define FPU_MVFR0_Single_precision_Pos      4U                                            /*!< MVFR
 1600:CMSIS/Include/core_cm7.h **** #define FPU_MVFR0_Single_precision_Msk     (0xFUL << FPU_MVFR0_Single_precision_Pos)      /*!< MVFR
 1601:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 34
-
-
 1602:CMSIS/Include/core_cm7.h **** #define FPU_MVFR0_A_SIMD_registers_Pos      0U                                            /*!< MVFR
 1603:CMSIS/Include/core_cm7.h **** #define FPU_MVFR0_A_SIMD_registers_Msk     (0xFUL /*<< FPU_MVFR0_A_SIMD_registers_Pos*/)  /*!< MVFR
 1604:CMSIS/Include/core_cm7.h **** 
@@ -2005,6 +1798,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1623:CMSIS/Include/core_cm7.h **** /**
 1624:CMSIS/Include/core_cm7.h ****   \ingroup  CMSIS_core_register
 1625:CMSIS/Include/core_cm7.h ****   \defgroup CMSIS_CoreDebug       Core Debug Registers (CoreDebug)
+ARM GAS  /tmp/ccluEM3J.s 			page 31
+
+
 1626:CMSIS/Include/core_cm7.h ****   \brief    Type definitions for the Core Debug Registers
 1627:CMSIS/Include/core_cm7.h ****   @{
 1628:CMSIS/Include/core_cm7.h ****  */
@@ -2038,9 +1834,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1656:CMSIS/Include/core_cm7.h **** 
 1657:CMSIS/Include/core_cm7.h **** #define CoreDebug_DHCSR_S_HALT_Pos         17U                                            /*!< Core
 1658:CMSIS/Include/core_cm7.h **** #define CoreDebug_DHCSR_S_HALT_Msk         (1UL << CoreDebug_DHCSR_S_HALT_Pos)            /*!< Core
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 35
-
-
 1659:CMSIS/Include/core_cm7.h **** 
 1660:CMSIS/Include/core_cm7.h **** #define CoreDebug_DHCSR_S_REGRDY_Pos       16U                                            /*!< Core
 1661:CMSIS/Include/core_cm7.h **** #define CoreDebug_DHCSR_S_REGRDY_Msk       (1UL << CoreDebug_DHCSR_S_REGRDY_Pos)          /*!< Core
@@ -2065,6 +1858,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1680:CMSIS/Include/core_cm7.h **** #define CoreDebug_DCRSR_REGWnR_Msk         (1UL << CoreDebug_DCRSR_REGWnR_Pos)            /*!< Core
 1681:CMSIS/Include/core_cm7.h **** 
 1682:CMSIS/Include/core_cm7.h **** #define CoreDebug_DCRSR_REGSEL_Pos          0U                                            /*!< Core
+ARM GAS  /tmp/ccluEM3J.s 			page 32
+
+
 1683:CMSIS/Include/core_cm7.h **** #define CoreDebug_DCRSR_REGSEL_Msk         (0x1FUL /*<< CoreDebug_DCRSR_REGSEL_Pos*/)     /*!< Core
 1684:CMSIS/Include/core_cm7.h **** 
 1685:CMSIS/Include/core_cm7.h **** /* Debug Exception and Monitor Control Register Definitions */
@@ -2098,9 +1894,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1713:CMSIS/Include/core_cm7.h **** #define CoreDebug_DEMCR_VC_CHKERR_Pos       6U                                            /*!< Core
 1714:CMSIS/Include/core_cm7.h **** #define CoreDebug_DEMCR_VC_CHKERR_Msk      (1UL << CoreDebug_DEMCR_VC_CHKERR_Pos)         /*!< Core
 1715:CMSIS/Include/core_cm7.h **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 36
-
-
 1716:CMSIS/Include/core_cm7.h **** #define CoreDebug_DEMCR_VC_NOCPERR_Pos      5U                                            /*!< Core
 1717:CMSIS/Include/core_cm7.h **** #define CoreDebug_DEMCR_VC_NOCPERR_Msk     (1UL << CoreDebug_DEMCR_VC_NOCPERR_Pos)        /*!< Core
 1718:CMSIS/Include/core_cm7.h **** 
@@ -2125,6 +1918,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1737:CMSIS/Include/core_cm7.h ****   \param[in] field  Name of the register bit field.
 1738:CMSIS/Include/core_cm7.h ****   \param[in] value  Value of the bit field. This parameter is interpreted as an uint32_t type.
 1739:CMSIS/Include/core_cm7.h ****   \return           Masked and shifted value.
+ARM GAS  /tmp/ccluEM3J.s 			page 33
+
+
 1740:CMSIS/Include/core_cm7.h **** */
 1741:CMSIS/Include/core_cm7.h **** #define _VAL2FLD(field, value)    (((uint32_t)(value) << field ## _Pos) & field ## _Msk)
 1742:CMSIS/Include/core_cm7.h **** 
@@ -2158,9 +1954,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1770:CMSIS/Include/core_cm7.h **** 
 1771:CMSIS/Include/core_cm7.h **** #define SCnSCB              ((SCnSCB_Type    *)     SCS_BASE      )   /*!< System control Register 
 1772:CMSIS/Include/core_cm7.h **** #define SCB                 ((SCB_Type       *)     SCB_BASE      )   /*!< SCB configuration struct
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 37
-
-
 1773:CMSIS/Include/core_cm7.h **** #define SysTick             ((SysTick_Type   *)     SysTick_BASE  )   /*!< SysTick configuration st
 1774:CMSIS/Include/core_cm7.h **** #define NVIC                ((NVIC_Type      *)     NVIC_BASE     )   /*!< NVIC configuration struc
 1775:CMSIS/Include/core_cm7.h **** #define ITM                 ((ITM_Type       *)     ITM_BASE      )   /*!< ITM configuration struct
@@ -2185,6 +1978,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1794:CMSIS/Include/core_cm7.h ****   Core Function Interface contains:
 1795:CMSIS/Include/core_cm7.h ****   - Core NVIC Functions
 1796:CMSIS/Include/core_cm7.h ****   - Core SysTick Functions
+ARM GAS  /tmp/ccluEM3J.s 			page 34
+
+
 1797:CMSIS/Include/core_cm7.h ****   - Core Debug Functions
 1798:CMSIS/Include/core_cm7.h ****   - Core Register Access Functions
 1799:CMSIS/Include/core_cm7.h ****  ******************************************************************************/
@@ -2218,9 +2014,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1827:CMSIS/Include/core_cm7.h ****   #define NVIC_ClearPendingIRQ        __NVIC_ClearPendingIRQ
 1828:CMSIS/Include/core_cm7.h ****   #define NVIC_GetActive              __NVIC_GetActive
 1829:CMSIS/Include/core_cm7.h ****   #define NVIC_SetPriority            __NVIC_SetPriority
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 38
-
-
 1830:CMSIS/Include/core_cm7.h ****   #define NVIC_GetPriority            __NVIC_GetPriority
 1831:CMSIS/Include/core_cm7.h ****   #define NVIC_SystemReset            __NVIC_SystemReset
 1832:CMSIS/Include/core_cm7.h **** #endif /* CMSIS_NVIC_VIRTUAL */
@@ -2245,6 +2038,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1851:CMSIS/Include/core_cm7.h **** #define EXC_RETURN_HANDLER_FPU     (0xFFFFFFE1UL)     /* return to Handler mode, uses MSP after ret
 1852:CMSIS/Include/core_cm7.h **** #define EXC_RETURN_THREAD_MSP_FPU  (0xFFFFFFE9UL)     /* return to Thread mode, uses MSP after retu
 1853:CMSIS/Include/core_cm7.h **** #define EXC_RETURN_THREAD_PSP_FPU  (0xFFFFFFEDUL)     /* return to Thread mode, uses PSP after retu
+ARM GAS  /tmp/ccluEM3J.s 			page 35
+
+
 1854:CMSIS/Include/core_cm7.h **** 
 1855:CMSIS/Include/core_cm7.h **** 
 1856:CMSIS/Include/core_cm7.h **** /**
@@ -2278,9 +2074,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1884:CMSIS/Include/core_cm7.h **** __STATIC_INLINE uint32_t __NVIC_GetPriorityGrouping(void)
 1885:CMSIS/Include/core_cm7.h **** {
 1886:CMSIS/Include/core_cm7.h ****   return ((uint32_t)((SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) >> SCB_AIRCR_PRIGROUP_Pos));
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 39
-
-
 1887:CMSIS/Include/core_cm7.h **** }
 1888:CMSIS/Include/core_cm7.h **** 
 1889:CMSIS/Include/core_cm7.h **** 
@@ -2305,6 +2098,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1908:CMSIS/Include/core_cm7.h ****   \param [in]      IRQn  Device specific interrupt number.
 1909:CMSIS/Include/core_cm7.h ****   \return             0  Interrupt is not enabled.
 1910:CMSIS/Include/core_cm7.h ****   \return             1  Interrupt is enabled.
+ARM GAS  /tmp/ccluEM3J.s 			page 36
+
+
 1911:CMSIS/Include/core_cm7.h ****   \note    IRQn must not be negative.
 1912:CMSIS/Include/core_cm7.h ****  */
 1913:CMSIS/Include/core_cm7.h **** __STATIC_INLINE uint32_t __NVIC_GetEnableIRQ(IRQn_Type IRQn)
@@ -2338,9 +2134,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1941:CMSIS/Include/core_cm7.h **** 
 1942:CMSIS/Include/core_cm7.h **** 
 1943:CMSIS/Include/core_cm7.h **** /**
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 40
-
-
 1944:CMSIS/Include/core_cm7.h ****   \brief   Get Pending Interrupt
 1945:CMSIS/Include/core_cm7.h ****   \details Reads the NVIC pending register and returns the pending bit for the specified device spe
 1946:CMSIS/Include/core_cm7.h ****   \param [in]      IRQn  Device specific interrupt number.
@@ -2365,6 +2158,9 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1965:CMSIS/Include/core_cm7.h ****   \brief   Set Pending Interrupt
 1966:CMSIS/Include/core_cm7.h ****   \details Sets the pending bit of a device specific interrupt in the NVIC pending register.
 1967:CMSIS/Include/core_cm7.h ****   \param [in]      IRQn  Device specific interrupt number.
+ARM GAS  /tmp/ccluEM3J.s 			page 37
+
+
 1968:CMSIS/Include/core_cm7.h ****   \note    IRQn must not be negative.
 1969:CMSIS/Include/core_cm7.h ****  */
 1970:CMSIS/Include/core_cm7.h **** __STATIC_INLINE void __NVIC_SetPendingIRQ(IRQn_Type IRQn)
@@ -2398,9 +2194,6 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 1998:CMSIS/Include/core_cm7.h ****   \return             0  Interrupt status is not active.
 1999:CMSIS/Include/core_cm7.h ****   \return             1  Interrupt status is active.
 2000:CMSIS/Include/core_cm7.h ****   \note    IRQn must not be negative.
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 41
-
-
 2001:CMSIS/Include/core_cm7.h ****  */
 2002:CMSIS/Include/core_cm7.h **** __STATIC_INLINE uint32_t __NVIC_GetActive(IRQn_Type IRQn)
 2003:CMSIS/Include/core_cm7.h **** {
@@ -2425,901 +2218,49 @@ ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 1
 2022:CMSIS/Include/core_cm7.h ****   \note    The priority cannot be set for every processor exception.
 2023:CMSIS/Include/core_cm7.h ****  */
 2024:CMSIS/Include/core_cm7.h **** __STATIC_INLINE void __NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
- 201              		.loc 2 2024 22 view .LVU59
- 202              	.LBB17:
+ARM GAS  /tmp/ccluEM3J.s 			page 38
+
+
+  65              		.loc 2 2024 22 view .LVU8
+  66              	.LBB5:
 2025:CMSIS/Include/core_cm7.h **** {
 2026:CMSIS/Include/core_cm7.h ****   if ((int32_t)(IRQn) >= 0)
- 203              		.loc 2 2026 3 view .LVU60
+  67              		.loc 2 2026 3 view .LVU9
 2027:CMSIS/Include/core_cm7.h ****   {
 2028:CMSIS/Include/core_cm7.h ****     NVIC->IP[((uint32_t)IRQn)]                = (uint8_t)((priority << (8U - __NVIC_PRIO_BITS)) & (
 2029:CMSIS/Include/core_cm7.h ****   }
 2030:CMSIS/Include/core_cm7.h ****   else
 2031:CMSIS/Include/core_cm7.h ****   {
 2032:CMSIS/Include/core_cm7.h ****     SCB->SHPR[(((uint32_t)IRQn) & 0xFUL)-4UL] = (uint8_t)((priority << (8U - __NVIC_PRIO_BITS)) & (
- 204              		.loc 2 2032 5 view .LVU61
- 205              		.loc 2 2032 47 is_stmt 0 view .LVU62
- 206 0034 03F55063 		add	r3, r3, #3328
- 207 0038 4022     		movs	r2, #64
- 208 003a 83F82320 		strb	r2, [r3, #35]
- 209              	.LVL1:
- 210              		.loc 2 2032 47 view .LVU63
- 211              	.LBE17:
- 212              	.LBE16:
-  84:Core/src/init.c **** }
- 213              		.loc 1 84 1 view .LVU64
- 214 003e 7047     		bx	lr
- 215              	.L11:
- 216              		.align	2
- 217              	.L10:
- 218 0040 BF4B0300 		.word	215999
- 219              		.cfi_endproc
- 220              	.LFE142:
- 222              		.section	.text.GPIO_Config,"ax",%progbits
- 223              		.align	1
- 224              		.global	GPIO_Config
- 225              		.syntax unified
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 42
-
-
- 226              		.thumb
- 227              		.thumb_func
- 229              	GPIO_Config:
- 230              	.LFB143:
-  85:Core/src/init.c **** 
-  86:Core/src/init.c **** /**
-  87:Core/src/init.c ****  * @brief Настройка GPIO:
-  88:Core/src/init.c ****  *  PA0, PA3  — analog (входы АЦП).
-  89:Core/src/init.c ****  *  PA4       — вход с pull-down (кнопка SETUP).
-  90:Core/src/init.c ****  *  PB0, PB7, PB14 — выходы (PB14 — PWR_LED; PB0/PB7 не используются).
-  91:Core/src/init.c ****  *  PC8..PC10 — выходы LED режимов.
-  92:Core/src/init.c ****  *  PE9       — AF1 = TIM1_CH1 (ШИМ на двигатель).
-  93:Core/src/init.c ****  *
-  94:Core/src/init.c ****  * Все LED сразу гасим (BSRR -> BRx), чтобы после reset не горели.
-  95:Core/src/init.c ****  * FIXME: PC13 (кнопка) и PB3 (PIR) не настроены явно — полагаемс�
-  96:Core/src/init.c ****  * на reset-состояние и внешние цепи.
-  97:Core/src/init.c ****  */
-  98:Core/src/init.c **** void GPIO_Config(void){
- 231              		.loc 1 98 23 is_stmt 1 view -0
- 232              		.cfi_startproc
- 233              		@ args = 0, pretend = 0, frame = 0
- 234              		@ frame_needed = 0, uses_anonymous_args = 0
- 235              		@ link register save eliminated.
-  99:Core/src/init.c ****     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN | RCC_AHB1ENR_GPIOCEN | RCC_AHB1ENR_G
- 236              		.loc 1 99 5 view .LVU66
- 237              		.loc 1 99 8 is_stmt 0 view .LVU67
- 238 0000 1E4A     		ldr	r2, .L13
- 239 0002 136B     		ldr	r3, [r2, #48]
- 240              		.loc 1 99 18 view .LVU68
- 241 0004 43F01F03 		orr	r3, r3, #31
- 242 0008 1363     		str	r3, [r2, #48]
- 100:Core/src/init.c **** 
- 101:Core/src/init.c ****     /* PA0, PA3 — аналоговый режим (для ADC1_IN0 / ADC1_IN3). */
- 102:Core/src/init.c ****     GPIOA->MODER |= GPIO_MODER_MODER0 | GPIO_MODER_MODER3; 
- 243              		.loc 1 102 5 is_stmt 1 view .LVU69
- 244              		.loc 1 102 10 is_stmt 0 view .LVU70
- 245 000a 1D4B     		ldr	r3, .L13+4
- 246 000c 1A68     		ldr	r2, [r3]
- 247              		.loc 1 102 18 view .LVU71
- 248 000e 42F0C302 		orr	r2, r2, #195
- 249 0012 1A60     		str	r2, [r3]
- 103:Core/src/init.c ****     /* PA4 — pull-down (кнопка SETUP подтягивает к VCC при нажатии). 
- 104:Core/src/init.c ****     GPIOA->PUPDR &= ~GPIO_PUPDR_PUPDR4;
- 250              		.loc 1 104 5 is_stmt 1 view .LVU72
- 251              		.loc 1 104 10 is_stmt 0 view .LVU73
- 252 0014 DA68     		ldr	r2, [r3, #12]
- 253              		.loc 1 104 18 view .LVU74
- 254 0016 22F44072 		bic	r2, r2, #768
- 255 001a DA60     		str	r2, [r3, #12]
- 105:Core/src/init.c ****     GPIOA->PUPDR |= GPIO_PUPDR_PUPDR4_1;
- 256              		.loc 1 105 5 is_stmt 1 view .LVU75
- 257              		.loc 1 105 10 is_stmt 0 view .LVU76
- 258 001c DA68     		ldr	r2, [r3, #12]
- 259              		.loc 1 105 18 view .LVU77
- 260 001e 42F40072 		orr	r2, r2, #512
- 261 0022 DA60     		str	r2, [r3, #12]
- 106:Core/src/init.c **** 
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 43
-
-
- 107:Core/src/init.c ****     /* PB14, PB10, PB7, PB2, PB1, PB0 — general purpose output. */
- 108:Core/src/init.c ****     GPIOB->MODER |= GPIO_MODER_MODER14_0 | GPIO_MODER_MODER10_0 | GPIO_MODER_MODER7_0 | GPIO_MODER_
- 262              		.loc 1 108 5 is_stmt 1 view .LVU78
- 263              		.loc 1 108 10 is_stmt 0 view .LVU79
- 264 0024 03F58063 		add	r3, r3, #1024
- 265 0028 1968     		ldr	r1, [r3]
- 266              		.loc 1 108 18 view .LVU80
- 267 002a 164A     		ldr	r2, .L13+8
- 268 002c 0A43     		orrs	r2, r2, r1
- 269 002e 1A60     		str	r2, [r3]
- 109:Core/src/init.c ****     GPIOB->BSRR  |= GPIO_BSRR_BR14 | GPIO_BSRR_BR10 | GPIO_BSRR_BR7 | GPIO_BSRR_BR2 | GPIO_BSRR_BR1
- 270              		.loc 1 109 5 is_stmt 1 view .LVU81
- 271              		.loc 1 109 10 is_stmt 0 view .LVU82
- 272 0030 9969     		ldr	r1, [r3, #24]
- 273              		.loc 1 109 18 view .LVU83
- 274 0032 154A     		ldr	r2, .L13+12
- 275 0034 0A43     		orrs	r2, r2, r1
- 276 0036 9A61     		str	r2, [r3, #24]
- 110:Core/src/init.c **** 
- 111:Core/src/init.c ****     /* PC8..PC10 — выходы на LED. */
- 112:Core/src/init.c ****     GPIOC->MODER &= ~GPIO_MODER_MODER13;
- 277              		.loc 1 112 5 is_stmt 1 view .LVU84
- 278              		.loc 1 112 10 is_stmt 0 view .LVU85
- 279 0038 03F58063 		add	r3, r3, #1024
- 280 003c 1A68     		ldr	r2, [r3]
- 281              		.loc 1 112 18 view .LVU86
- 282 003e 22F04062 		bic	r2, r2, #201326592
- 283 0042 1A60     		str	r2, [r3]
- 113:Core/src/init.c ****     GPIOC->MODER |= GPIO_MODER_MODER8_0 | GPIO_MODER_MODER9_0 | GPIO_MODER_MODER10_0;
- 284              		.loc 1 113 5 is_stmt 1 view .LVU87
- 285              		.loc 1 113 10 is_stmt 0 view .LVU88
- 286 0044 1A68     		ldr	r2, [r3]
- 287              		.loc 1 113 18 view .LVU89
- 288 0046 42F4A812 		orr	r2, r2, #1376256
- 289 004a 1A60     		str	r2, [r3]
- 114:Core/src/init.c ****     GPIOC->BSRR  |= GPIO_BSRR_BR8 | GPIO_BSRR_BR9 | GPIO_BSRR_BR10;
- 290              		.loc 1 114 5 is_stmt 1 view .LVU90
- 291              		.loc 1 114 10 is_stmt 0 view .LVU91
- 292 004c 9A69     		ldr	r2, [r3, #24]
- 293              		.loc 1 114 18 view .LVU92
- 294 004e 42F0E062 		orr	r2, r2, #117440512
- 295 0052 9A61     		str	r2, [r3, #24]
- 115:Core/src/init.c **** 
- 116:Core/src/init.c ****     /* PE9 -> AF1 (TIM1_CH1): MODER = 10, AFR[1].AFRH1 = 0001. */
- 117:Core/src/init.c ****     GPIOE->MODER  &= ~GPIO_MODER_MODER9_Msk; 
- 296              		.loc 1 117 5 is_stmt 1 view .LVU93
- 297              		.loc 1 117 10 is_stmt 0 view .LVU94
- 298 0054 03F50063 		add	r3, r3, #2048
- 299 0058 1A68     		ldr	r2, [r3]
- 300              		.loc 1 117 19 view .LVU95
- 301 005a 22F44022 		bic	r2, r2, #786432
- 302 005e 1A60     		str	r2, [r3]
- 118:Core/src/init.c ****     GPIOE->MODER  |= (2 << GPIO_MODER_MODER9_Pos); // PE9 -> alternative function
- 303              		.loc 1 118 5 is_stmt 1 view .LVU96
- 304              		.loc 1 118 10 is_stmt 0 view .LVU97
- 305 0060 1A68     		ldr	r2, [r3]
- 306              		.loc 1 118 19 view .LVU98
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 44
-
-
- 307 0062 42F40022 		orr	r2, r2, #524288
- 308 0066 1A60     		str	r2, [r3]
- 119:Core/src/init.c ****     GPIOE->AFR[1] &= ~GPIO_AFRH_AFRH1_Msk;
- 309              		.loc 1 119 5 is_stmt 1 view .LVU99
- 310              		.loc 1 119 15 is_stmt 0 view .LVU100
- 311 0068 5A6A     		ldr	r2, [r3, #36]
- 312              		.loc 1 119 19 view .LVU101
- 313 006a 22F0F002 		bic	r2, r2, #240
- 314 006e 5A62     		str	r2, [r3, #36]
- 120:Core/src/init.c ****     GPIOE->AFR[1] |= GPIO_AFRH_AFRH1_0; // PE9 -> CCR1 from TIM1 (PWM)
- 315              		.loc 1 120 5 is_stmt 1 view .LVU102
- 316              		.loc 1 120 15 is_stmt 0 view .LVU103
- 317 0070 5A6A     		ldr	r2, [r3, #36]
- 318              		.loc 1 120 19 view .LVU104
- 319 0072 42F01002 		orr	r2, r2, #16
- 320 0076 5A62     		str	r2, [r3, #36]
- 121:Core/src/init.c **** }
- 321              		.loc 1 121 1 view .LVU105
- 322 0078 7047     		bx	lr
- 323              	.L14:
- 324 007a 00BF     		.align	2
- 325              	.L13:
- 326 007c 00380240 		.word	1073887232
- 327 0080 00000240 		.word	1073872896
- 328 0084 15401010 		.word	269500437
- 329 0088 00008744 		.word	1149698048
- 330              		.cfi_endproc
- 331              	.LFE143:
- 333              		.section	.text.EXTI_Config,"ax",%progbits
- 334              		.align	1
- 335              		.global	EXTI_Config
- 336              		.syntax unified
- 337              		.thumb
- 338              		.thumb_func
- 340              	EXTI_Config:
- 341              	.LFB144:
- 122:Core/src/init.c **** 
- 123:Core/src/init.c **** /**
- 124:Core/src/init.c ****  * @brief Внешние прерывания.
- 125:Core/src/init.c ****  *
- 126:Core/src/init.c ****  *  EXTI3  (PB3)  — PIR-датчик. Прерывание по любому изменению �
- 127:Core/src/init.c ****  *                  (сейчас включены RTSR и FTSR), в обработчике
- 128:Core/src/init.c ****  *                  читаем IDR и ставим pir_sens.
- 129:Core/src/init.c ****  *  EXTI4  (PA4)  — кнопка SETUP.
- 130:Core/src/init.c ****  *  EXTI13 (PC13) — пользовательская кнопка B1 (Nucleo).
- 131:Core/src/init.c ****  *
- 132:Core/src/init.c ****  * Приоритеты: EXTI3 (PIR) < EXTI4 (setup) < EXTI15_10 (кнопка)
- 133:Core/src/init.c ****  * по числу = выше приоритет (меньше число). То есть PIR са�
- 134:Core/src/init.c ****  */
- 135:Core/src/init.c **** void EXTI_Config(void){
- 342              		.loc 1 135 23 is_stmt 1 view -0
- 343              		.cfi_startproc
- 344              		@ args = 0, pretend = 0, frame = 0
- 345              		@ frame_needed = 0, uses_anonymous_args = 0
- 346              		@ link register save eliminated.
- 136:Core/src/init.c ****     RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
- 347              		.loc 1 136 5 view .LVU107
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 45
-
-
- 348              		.loc 1 136 8 is_stmt 0 view .LVU108
- 349 0000 184A     		ldr	r2, .L16
- 350 0002 536C     		ldr	r3, [r2, #68]
- 351              		.loc 1 136 18 view .LVU109
- 352 0004 43F48043 		orr	r3, r3, #16384
- 353 0008 5364     		str	r3, [r2, #68]
- 137:Core/src/init.c **** 
- 138:Core/src/init.c ****     SYSCFG->EXTICR[3] |= SYSCFG_EXTICR4_EXTI13_PC; // линия 13 <- порт C
- 354              		.loc 1 138 5 is_stmt 1 view .LVU110
- 355              		.loc 1 138 19 is_stmt 0 view .LVU111
- 356 000a 174B     		ldr	r3, .L16+4
- 357 000c 5A69     		ldr	r2, [r3, #20]
- 358              		.loc 1 138 23 view .LVU112
- 359 000e 42F02002 		orr	r2, r2, #32
- 360 0012 5A61     		str	r2, [r3, #20]
- 139:Core/src/init.c ****     SYSCFG->EXTICR[1] |= SYSCFG_EXTICR2_EXTI4_PA;  // линия 4  <- порт A
- 361              		.loc 1 139 5 is_stmt 1 view .LVU113
- 362              		.loc 1 139 19 is_stmt 0 view .LVU114
- 363 0014 DA68     		ldr	r2, [r3, #12]
- 364              		.loc 1 139 23 view .LVU115
- 365 0016 DA60     		str	r2, [r3, #12]
- 140:Core/src/init.c ****     SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI3_PB;  // линия 3  <- порт B
- 366              		.loc 1 140 5 is_stmt 1 view .LVU116
- 367              		.loc 1 140 19 is_stmt 0 view .LVU117
- 368 0018 9A68     		ldr	r2, [r3, #8]
- 369              		.loc 1 140 23 view .LVU118
- 370 001a 42F48052 		orr	r2, r2, #4096
- 371 001e 9A60     		str	r2, [r3, #8]
- 141:Core/src/init.c **** 
- 142:Core/src/init.c ****      /* Маска: разрешаем прерывания от линий 3, 4, 13. */
- 143:Core/src/init.c ****     EXTI->IMR |= EXTI_IMR_MR3 | EXTI_IMR_MR4 | EXTI_IMR_MR13;
- 372              		.loc 1 143 5 is_stmt 1 view .LVU119
- 373              		.loc 1 143 9 is_stmt 0 view .LVU120
- 374 0020 03F58063 		add	r3, r3, #1024
- 375 0024 1A68     		ldr	r2, [r3]
- 376              		.loc 1 143 15 view .LVU121
- 377 0026 42F21801 		movw	r1, #8216
- 378 002a 0A43     		orrs	r2, r2, r1
- 379 002c 1A60     		str	r2, [r3]
- 144:Core/src/init.c **** 
- 145:Core/src/init.c ****     /* Фронты: */
- 146:Core/src/init.c ****     EXTI->RTSR |= EXTI_RTSR_TR13 | EXTI_RTSR_TR3 | EXTI_RTSR_TR4;
- 380              		.loc 1 146 5 is_stmt 1 view .LVU122
- 381              		.loc 1 146 9 is_stmt 0 view .LVU123
- 382 002e 9A68     		ldr	r2, [r3, #8]
- 383              		.loc 1 146 16 view .LVU124
- 384 0030 0A43     		orrs	r2, r2, r1
- 385 0032 9A60     		str	r2, [r3, #8]
- 147:Core/src/init.c ****     EXTI->FTSR |= EXTI_FTSR_TR3; // PIR по любому фронту
- 386              		.loc 1 147 5 is_stmt 1 view .LVU125
- 387              		.loc 1 147 9 is_stmt 0 view .LVU126
- 388 0034 DA68     		ldr	r2, [r3, #12]
- 389              		.loc 1 147 16 view .LVU127
- 390 0036 42F00802 		orr	r2, r2, #8
- 391 003a DA60     		str	r2, [r3, #12]
- 148:Core/src/init.c **** 
- 149:Core/src/init.c ****     NVIC_SetPriority(EXTI3_IRQn, 1);
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 46
-
-
- 392              		.loc 1 149 5 is_stmt 1 view .LVU128
- 393              	.LVL2:
- 394              	.LBB18:
- 395              	.LBI18:
-2024:CMSIS/Include/core_cm7.h **** {
- 396              		.loc 2 2024 22 view .LVU129
- 397              	.LBB19:
-2026:CMSIS/Include/core_cm7.h ****   {
- 398              		.loc 2 2026 3 view .LVU130
-2028:CMSIS/Include/core_cm7.h ****   }
- 399              		.loc 2 2028 5 view .LVU131
-2028:CMSIS/Include/core_cm7.h ****   }
- 400              		.loc 2 2028 47 is_stmt 0 view .LVU132
- 401 003c 0B4B     		ldr	r3, .L16+8
- 402 003e 1022     		movs	r2, #16
- 403 0040 83F80923 		strb	r2, [r3, #777]
- 404              	.LVL3:
-2028:CMSIS/Include/core_cm7.h ****   }
- 405              		.loc 2 2028 47 view .LVU133
- 406              	.LBE19:
- 407              	.LBE18:
- 150:Core/src/init.c ****     NVIC_EnableIRQ(EXTI3_IRQn);
- 408              		.loc 1 150 5 is_stmt 1 view .LVU134
- 409              	.LBB20:
- 410              	.LBI20:
-1896:CMSIS/Include/core_cm7.h **** {
- 411              		.loc 2 1896 22 view .LVU135
- 412              	.LBB21:
-1898:CMSIS/Include/core_cm7.h ****   {
- 413              		.loc 2 1898 3 view .LVU136
-1900:CMSIS/Include/core_cm7.h ****   }
- 414              		.loc 2 1900 5 view .LVU137
-1900:CMSIS/Include/core_cm7.h ****   }
- 415              		.loc 2 1900 43 is_stmt 0 view .LVU138
- 416 0044 4FF40072 		mov	r2, #512
- 417 0048 1A60     		str	r2, [r3]
- 418              	.LVL4:
-1900:CMSIS/Include/core_cm7.h ****   }
- 419              		.loc 2 1900 43 view .LVU139
- 420              	.LBE21:
- 421              	.LBE20:
- 151:Core/src/init.c ****     NVIC_SetPriority(EXTI4_IRQn, 2);
- 422              		.loc 1 151 5 is_stmt 1 view .LVU140
- 423              	.LBB22:
- 424              	.LBI22:
-2024:CMSIS/Include/core_cm7.h **** {
- 425              		.loc 2 2024 22 view .LVU141
- 426              	.LBB23:
-2026:CMSIS/Include/core_cm7.h ****   {
- 427              		.loc 2 2026 3 view .LVU142
-2028:CMSIS/Include/core_cm7.h ****   }
- 428              		.loc 2 2028 5 view .LVU143
-2028:CMSIS/Include/core_cm7.h ****   }
- 429              		.loc 2 2028 47 is_stmt 0 view .LVU144
- 430 004a 2022     		movs	r2, #32
- 431 004c 83F80A23 		strb	r2, [r3, #778]
- 432              	.LVL5:
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 47
-
-
-2028:CMSIS/Include/core_cm7.h ****   }
- 433              		.loc 2 2028 47 view .LVU145
- 434              	.LBE23:
- 435              	.LBE22:
- 152:Core/src/init.c ****     NVIC_EnableIRQ(EXTI4_IRQn);
- 436              		.loc 1 152 5 is_stmt 1 view .LVU146
- 437              	.LBB24:
- 438              	.LBI24:
-1896:CMSIS/Include/core_cm7.h **** {
- 439              		.loc 2 1896 22 view .LVU147
- 440              	.LBB25:
-1898:CMSIS/Include/core_cm7.h ****   {
- 441              		.loc 2 1898 3 view .LVU148
-1900:CMSIS/Include/core_cm7.h ****   }
- 442              		.loc 2 1900 5 view .LVU149
-1900:CMSIS/Include/core_cm7.h ****   }
- 443              		.loc 2 1900 43 is_stmt 0 view .LVU150
- 444 0050 4FF48062 		mov	r2, #1024
- 445 0054 1A60     		str	r2, [r3]
- 446              	.LVL6:
-1900:CMSIS/Include/core_cm7.h ****   }
- 447              		.loc 2 1900 43 view .LVU151
- 448              	.LBE25:
- 449              	.LBE24:
- 153:Core/src/init.c ****     NVIC_SetPriority(EXTI15_10_IRQn, 3);
- 450              		.loc 1 153 5 is_stmt 1 view .LVU152
- 451              	.LBB26:
- 452              	.LBI26:
-2024:CMSIS/Include/core_cm7.h **** {
- 453              		.loc 2 2024 22 view .LVU153
- 454              	.LBB27:
-2026:CMSIS/Include/core_cm7.h ****   {
- 455              		.loc 2 2026 3 view .LVU154
-2028:CMSIS/Include/core_cm7.h ****   }
- 456              		.loc 2 2028 5 view .LVU155
-2028:CMSIS/Include/core_cm7.h ****   }
- 457              		.loc 2 2028 47 is_stmt 0 view .LVU156
- 458 0056 3022     		movs	r2, #48
- 459 0058 83F82823 		strb	r2, [r3, #808]
- 460              	.LVL7:
-2028:CMSIS/Include/core_cm7.h ****   }
- 461              		.loc 2 2028 47 view .LVU157
- 462              	.LBE27:
- 463              	.LBE26:
- 154:Core/src/init.c ****     NVIC_EnableIRQ(EXTI15_10_IRQn);
- 464              		.loc 1 154 5 is_stmt 1 view .LVU158
- 465              	.LBB28:
- 466              	.LBI28:
-1896:CMSIS/Include/core_cm7.h **** {
- 467              		.loc 2 1896 22 view .LVU159
- 468              	.LBB29:
-1898:CMSIS/Include/core_cm7.h ****   {
- 469              		.loc 2 1898 3 view .LVU160
-1900:CMSIS/Include/core_cm7.h ****   }
- 470              		.loc 2 1900 5 view .LVU161
-1900:CMSIS/Include/core_cm7.h ****   }
- 471              		.loc 2 1900 43 is_stmt 0 view .LVU162
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 48
-
-
- 472 005c 4FF48072 		mov	r2, #256
- 473 0060 5A60     		str	r2, [r3, #4]
- 474              	.LVL8:
-1900:CMSIS/Include/core_cm7.h ****   }
- 475              		.loc 2 1900 43 view .LVU163
- 476              	.LBE29:
- 477              	.LBE28:
- 155:Core/src/init.c **** }
- 478              		.loc 1 155 1 view .LVU164
- 479 0062 7047     		bx	lr
- 480              	.L17:
- 481              		.align	2
- 482              	.L16:
- 483 0064 00380240 		.word	1073887232
- 484 0068 00380140 		.word	1073821696
- 485 006c 00E100E0 		.word	-536813312
- 486              		.cfi_endproc
- 487              	.LFE144:
- 489              		.section	.text.TIM1_Config,"ax",%progbits
- 490              		.align	1
- 491              		.global	TIM1_Config
- 492              		.syntax unified
- 493              		.thumb
- 494              		.thumb_func
- 496              	TIM1_Config:
- 497              	.LFB145:
- 156:Core/src/init.c **** 
- 157:Core/src/init.c **** /**
- 158:Core/src/init.c ****  * @brief TIM1 в режиме PWM mode 1 на канале 1.
- 159:Core/src/init.c ****  *
- 160:Core/src/init.c ****  * PSC/ARR берутся из init_config (в main: PSC=216, ARR=1000).
- 161:Core/src/init.c ****  * При тактировании TIM1 от APB2=108 МГц:
- 162:Core/src/init.c ****  *   f_PWM = 108e6 / (PSC * ARR) = 108e6 / (216*1000) = 500 Гц.
- 163:Core/src/init.c ****  * 500 Гц — типично для коллекторного двигателя: не пищи�
- 164:Core/src/init.c ****  * перегружает моторный драйвер.
- 165:Core/src/init.c ****  *
- 166:Core/src/init.c ****  * CCR1 (скважность) меняется из main: g_app.pulse -> TIM1->CCR1.
- 167:Core/src/init.c ****  * TRGO = Update event — этим сигналом триггерится ADC.
- 168:Core/src/init.c ****  */
- 169:Core/src/init.c **** void TIM1_Config(void){
- 498              		.loc 1 169 23 is_stmt 1 view -0
- 499              		.cfi_startproc
- 500              		@ args = 0, pretend = 0, frame = 0
- 501              		@ frame_needed = 0, uses_anonymous_args = 0
- 502              		@ link register save eliminated.
- 170:Core/src/init.c ****     RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
- 503              		.loc 1 170 5 view .LVU166
- 504              		.loc 1 170 8 is_stmt 0 view .LVU167
- 505 0000 194A     		ldr	r2, .L19
- 506 0002 536C     		ldr	r3, [r2, #68]
- 507              		.loc 1 170 18 view .LVU168
- 508 0004 43F00103 		orr	r3, r3, #1
- 509 0008 5364     		str	r3, [r2, #68]
- 171:Core/src/init.c **** 
- 172:Core/src/init.c ****     TIM1->PSC  = init_config.PSC - 1;
- 510              		.loc 1 172 5 is_stmt 1 view .LVU169
- 511              		.loc 1 172 29 is_stmt 0 view .LVU170
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 49
-
-
- 512 000a 1849     		ldr	r1, .L19+4
- 513 000c 4A88     		ldrh	r2, [r1, #2]
- 514 000e 92B2     		uxth	r2, r2
- 515              		.loc 1 172 34 view .LVU171
- 516 0010 013A     		subs	r2, r2, #1
- 517              		.loc 1 172 16 view .LVU172
- 518 0012 174B     		ldr	r3, .L19+8
- 519 0014 9A62     		str	r2, [r3, #40]
- 173:Core/src/init.c ****     TIM1->ARR  = init_config.ARR - 1;
- 520              		.loc 1 173 5 is_stmt 1 view .LVU173
- 521              		.loc 1 173 29 is_stmt 0 view .LVU174
- 522 0016 0A88     		ldrh	r2, [r1]
- 523 0018 92B2     		uxth	r2, r2
- 524              		.loc 1 173 34 view .LVU175
- 525 001a 013A     		subs	r2, r2, #1
- 526              		.loc 1 173 16 view .LVU176
- 527 001c DA62     		str	r2, [r3, #44]
- 174:Core/src/init.c **** 
- 175:Core/src/init.c ****     /* Канал 1: PWM mode 1, preload enable (CCR обновляется на UEV,
- 176:Core/src/init.c ****      * чтобы не было глитчей при изменении скважности). 
- 177:Core/src/init.c ****      */
- 178:Core/src/init.c ****     TIM1->CCMR1 &= ~TIM_CCMR1_CC1S_Msk;         // CC1 = output
- 528              		.loc 1 178 5 is_stmt 1 view .LVU177
- 529              		.loc 1 178 9 is_stmt 0 view .LVU178
- 530 001e 9A69     		ldr	r2, [r3, #24]
- 531              		.loc 1 178 17 view .LVU179
- 532 0020 22F00302 		bic	r2, r2, #3
- 533 0024 9A61     		str	r2, [r3, #24]
- 179:Core/src/init.c ****     TIM1->CCMR1 |= TIM_CCMR1_OC1PE;             // Preload
- 534              		.loc 1 179 5 is_stmt 1 view .LVU180
- 535              		.loc 1 179 9 is_stmt 0 view .LVU181
- 536 0026 9A69     		ldr	r2, [r3, #24]
- 537              		.loc 1 179 17 view .LVU182
- 538 0028 42F00802 		orr	r2, r2, #8
- 539 002c 9A61     		str	r2, [r3, #24]
- 180:Core/src/init.c ****     TIM1->CCMR1 &= ~TIM_CCMR1_OC1M;
- 540              		.loc 1 180 5 is_stmt 1 view .LVU183
- 541              		.loc 1 180 9 is_stmt 0 view .LVU184
- 542 002e 9969     		ldr	r1, [r3, #24]
- 543              		.loc 1 180 17 view .LVU185
- 544 0030 104A     		ldr	r2, .L19+12
- 545 0032 0A40     		ands	r2, r2, r1
- 546 0034 9A61     		str	r2, [r3, #24]
- 181:Core/src/init.c ****     TIM1->CCMR1 |= (6 << TIM_CCMR1_OC1M_Pos);   // 110 - PWM mode 1
- 547              		.loc 1 181 5 is_stmt 1 view .LVU186
- 548              		.loc 1 181 9 is_stmt 0 view .LVU187
- 549 0036 9A69     		ldr	r2, [r3, #24]
- 550              		.loc 1 181 17 view .LVU188
- 551 0038 42F06002 		orr	r2, r2, #96
- 552 003c 9A61     		str	r2, [r3, #24]
- 182:Core/src/init.c ****     TIM1->CCER  |= TIM_CCER_CC1E;               // Включаем выход канала 1
- 553              		.loc 1 182 5 is_stmt 1 view .LVU189
- 554              		.loc 1 182 9 is_stmt 0 view .LVU190
- 555 003e 1A6A     		ldr	r2, [r3, #32]
- 556              		.loc 1 182 17 view .LVU191
- 557 0040 42F00102 		orr	r2, r2, #1
- 558 0044 1A62     		str	r2, [r3, #32]
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 50
-
-
- 183:Core/src/init.c ****     TIM1->BDTR  |= TIM_BDTR_MOE;                // MOE обязателен для выходов
- 559              		.loc 1 183 5 is_stmt 1 view .LVU192
- 560              		.loc 1 183 9 is_stmt 0 view .LVU193
- 561 0046 5A6C     		ldr	r2, [r3, #68]
- 562              		.loc 1 183 17 view .LVU194
- 563 0048 42F40042 		orr	r2, r2, #32768
- 564 004c 5A64     		str	r2, [r3, #68]
- 184:Core/src/init.c **** 
- 185:Core/src/init.c ****     TIM1->EGR   |= TIM_EGR_UG;                  // Применить PSC/ARR сейчас
- 565              		.loc 1 185 5 is_stmt 1 view .LVU195
- 566              		.loc 1 185 9 is_stmt 0 view .LVU196
- 567 004e 5A69     		ldr	r2, [r3, #20]
- 568              		.loc 1 185 17 view .LVU197
- 569 0050 42F00102 		orr	r2, r2, #1
- 570 0054 5A61     		str	r2, [r3, #20]
- 186:Core/src/init.c ****     TIM1->CR2   |= (2 << TIM_CR2_MMS_Pos);      // TRGO = Update event (для ADC)
- 571              		.loc 1 186 5 is_stmt 1 view .LVU198
- 572              		.loc 1 186 9 is_stmt 0 view .LVU199
- 573 0056 5A68     		ldr	r2, [r3, #4]
- 574              		.loc 1 186 17 view .LVU200
- 575 0058 42F02002 		orr	r2, r2, #32
- 576 005c 5A60     		str	r2, [r3, #4]
- 187:Core/src/init.c ****     TIM1->CR1   |= TIM_CR1_CEN;                 // Запуск счёта
- 577              		.loc 1 187 5 is_stmt 1 view .LVU201
- 578              		.loc 1 187 9 is_stmt 0 view .LVU202
- 579 005e 1A68     		ldr	r2, [r3]
- 580              		.loc 1 187 17 view .LVU203
- 581 0060 42F00102 		orr	r2, r2, #1
- 582 0064 1A60     		str	r2, [r3]
- 188:Core/src/init.c **** }
- 583              		.loc 1 188 1 view .LVU204
- 584 0066 7047     		bx	lr
- 585              	.L20:
- 586              		.align	2
- 587              	.L19:
- 588 0068 00380240 		.word	1073887232
- 589 006c 00000000 		.word	init_config
- 590 0070 00000140 		.word	1073807360
- 591 0074 8FFFFEFF 		.word	-65649
- 592              		.cfi_endproc
- 593              	.LFE145:
- 595              		.section	.text.ADC1_DMA_Config,"ax",%progbits
- 596              		.align	1
- 597              		.global	ADC1_DMA_Config
- 598              		.syntax unified
- 599              		.thumb
- 600              		.thumb_func
- 602              	ADC1_DMA_Config:
- 603              	.LFB146:
- 189:Core/src/init.c **** 
- 190:Core/src/init.c **** /**
- 191:Core/src/init.c ****  * @brief ADC1 + DMA2_Stream0.
- 192:Core/src/init.c ****  *
- 193:Core/src/init.c ****  * Идея: TIM1 генерирует TRGO на каждом Update event (500 Гц).
- 194:Core/src/init.c ****  * По этому триггеру ADC1 сканирует два канала (0 и 3) и чер�
- 195:Core/src/init.c ****  * складывает результаты в g_app.adc_buffer[0..1]. CPU не участвует
- 196:Core/src/init.c ****  * В main из этого буфера делает mean_filter() и transform().
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 51
-
-
- 197:Core/src/init.c ****  *
- 198:Core/src/init.c ****  * Настройки ADC:
- 199:Core/src/init.c ****  *  - 12 бит, right-aligned;
- 200:Core/src/init.c ****  *  - scan mode (два канала в SQR);
- 201:Core/src/init.c ****  *  - EXTSEL = TIM1_TRGO, rising.
- 202:Core/src/init.c ****  *
- 203:Core/src/init.c ****  * DMA: циклический режим, периферия -> память, 16 бит/16 бит,
- 204:Core/src/init.c ****  */
- 205:Core/src/init.c **** void ADC1_DMA_Config(void){
- 604              		.loc 1 205 27 is_stmt 1 view -0
- 605              		.cfi_startproc
- 606              		@ args = 0, pretend = 0, frame = 8
- 607              		@ frame_needed = 0, uses_anonymous_args = 0
- 608              		@ link register save eliminated.
- 609 0000 82B0     		sub	sp, sp, #8
- 610              	.LCFI0:
- 611              		.cfi_def_cfa_offset 8
- 206:Core/src/init.c ****     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
- 612              		.loc 1 206 5 view .LVU206
- 613              		.loc 1 206 8 is_stmt 0 view .LVU207
- 614 0002 384B     		ldr	r3, .L26
- 615 0004 5A6C     		ldr	r2, [r3, #68]
- 616              		.loc 1 206 18 view .LVU208
- 617 0006 42F48072 		orr	r2, r2, #256
- 618 000a 5A64     		str	r2, [r3, #68]
- 207:Core/src/init.c ****     RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;         // DMA2
- 619              		.loc 1 207 5 is_stmt 1 view .LVU209
- 620              		.loc 1 207 8 is_stmt 0 view .LVU210
- 621 000c 1A6B     		ldr	r2, [r3, #48]
- 622              		.loc 1 207 18 view .LVU211
- 623 000e 42F48002 		orr	r2, r2, #4194304
- 624 0012 1A63     		str	r2, [r3, #48]
- 208:Core/src/init.c **** 
- 209:Core/src/init.c ****     /* Настройка DMA2 Stream0 для ADC1 */
- 210:Core/src/init.c ****     DMA2_Stream0->CR &= ~DMA_SxCR_EN;           // Выключаем поток перед нас�
- 625              		.loc 1 210 5 is_stmt 1 view .LVU212
- 626              		.loc 1 210 17 is_stmt 0 view .LVU213
- 627 0014 344A     		ldr	r2, .L26+4
- 628 0016 1369     		ldr	r3, [r2, #16]
- 629              		.loc 1 210 22 view .LVU214
- 630 0018 23F00103 		bic	r3, r3, #1
- 631 001c 1361     		str	r3, [r2, #16]
- 211:Core/src/init.c ****     while (DMA2_Stream0->CR & DMA_SxCR_EN) {}   // Ждём фактического выключе
- 632              		.loc 1 211 5 is_stmt 1 view .LVU215
- 633              	.L22:
- 634              		.loc 1 211 45 discriminator 1 view .LVU216
- 635              		.loc 1 211 12 discriminator 1 view .LVU217
- 636              		.loc 1 211 24 is_stmt 0 discriminator 1 view .LVU218
- 637 001e 324B     		ldr	r3, .L26+4
- 638 0020 1B69     		ldr	r3, [r3, #16]
- 639              		.loc 1 211 12 discriminator 1 view .LVU219
- 640 0022 13F0010F 		tst	r3, #1
- 641 0026 FAD1     		bne	.L22
- 212:Core/src/init.c **** 
- 213:Core/src/init.c ****     DMA2_Stream0->CR = 0;                       // Сброс регистра
- 642              		.loc 1 213 5 is_stmt 1 view .LVU220
- 643              		.loc 1 213 22 is_stmt 0 view .LVU221
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 52
-
-
- 644 0028 2F4B     		ldr	r3, .L26+4
- 645 002a 0022     		movs	r2, #0
- 646 002c 1A61     		str	r2, [r3, #16]
- 214:Core/src/init.c ****     // Канал 0 (CHSEL = 0), направление периферия->память (DIR = 0),
- 215:Core/src/init.c ****     // размер данных 16 бит (MSIZE = 01, PSIZE = 01),
- 216:Core/src/init.c ****     // инкремент памяти (MINC = 1), циклический режим (CIRC = 1)
- 217:Core/src/init.c ****     DMA2_Stream0->CR |= (0U << DMA_SxCR_CHSEL_Pos)   // Channel 0 для ADC1
- 647              		.loc 1 217 5 is_stmt 1 view .LVU222
- 648              		.loc 1 217 17 is_stmt 0 view .LVU223
- 649 002e 1969     		ldr	r1, [r3, #16]
- 650              		.loc 1 217 22 view .LVU224
- 651 0030 41F43451 		orr	r1, r1, #11520
- 652 0034 1961     		str	r1, [r3, #16]
- 218:Core/src/init.c ****                      |  (0U << DMA_SxCR_DIR_Pos)     // Peripheral-to-memory
- 219:Core/src/init.c ****                      |  (1U << DMA_SxCR_MSIZE_Pos)   // 16-bit memory
- 220:Core/src/init.c ****                      |  (1U << DMA_SxCR_PSIZE_Pos)   // 16-bit peripheral
- 221:Core/src/init.c ****                      |  (1U << DMA_SxCR_MINC_Pos)    // Memory increment
- 222:Core/src/init.c ****                      |  (1U << DMA_SxCR_CIRC_Pos);   // Circular mode
- 223:Core/src/init.c **** 
- 224:Core/src/init.c ****     DMA2_Stream0->PAR  = (uint32_t)&(ADC1->DR);                             // Адрес реги�
- 653              		.loc 1 224 5 is_stmt 1 view .LVU225
- 654              		.loc 1 224 24 is_stmt 0 view .LVU226
- 655 0036 2D49     		ldr	r1, .L26+8
- 656 0038 9961     		str	r1, [r3, #24]
- 225:Core/src/init.c ****     DMA2_Stream0->M0AR = (uint32_t)(uintptr_t)(void *)&g_app.adc_buffer[0]; // Адрес буфе�
- 657              		.loc 1 225 5 is_stmt 1 view .LVU227
- 658              		.loc 1 225 26 is_stmt 0 view .LVU228
- 659 003a 2D49     		ldr	r1, .L26+12
- 660              		.loc 1 225 24 view .LVU229
- 661 003c D961     		str	r1, [r3, #28]
- 226:Core/src/init.c ****     DMA2_Stream0->NDTR = ADC_BUF_LEN;                                       // Количество
- 662              		.loc 1 226 5 is_stmt 1 view .LVU230
- 663              		.loc 1 226 24 is_stmt 0 view .LVU231
- 664 003e 0221     		movs	r1, #2
- 665 0040 5961     		str	r1, [r3, #20]
- 227:Core/src/init.c **** 
- 228:Core/src/init.c ****     /* Сброс флагов потока перед запуском. */
- 229:Core/src/init.c ****     DMA2->LIFCR = DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_
- 666              		.loc 1 229 5 is_stmt 1 view .LVU232
- 667              		.loc 1 229 17 is_stmt 0 view .LVU233
- 668 0042 3D21     		movs	r1, #61
- 669 0044 9960     		str	r1, [r3, #8]
- 230:Core/src/init.c ****     DMA2_Stream0->CR |= DMA_SxCR_EN;                 // Включаем поток
- 670              		.loc 1 230 5 is_stmt 1 view .LVU234
- 671              		.loc 1 230 17 is_stmt 0 view .LVU235
- 672 0046 1969     		ldr	r1, [r3, #16]
- 673              		.loc 1 230 22 view .LVU236
- 674 0048 41F00101 		orr	r1, r1, #1
- 675 004c 1961     		str	r1, [r3, #16]
- 231:Core/src/init.c **** 
- 232:Core/src/init.c ****     /* --- Тактирование ADC --- */
- 233:Core/src/init.c ****     /* ADCPRE = 4: 108 / 4 = 27 МГц. Максимум для ADC на F7 — 36 МГц. */
- 234:Core/src/init.c ****     ADC->CCR |= ADC_CCR_ADCPRE_0; 
- 676              		.loc 1 234 5 is_stmt 1 view .LVU237
- 677              		.loc 1 234 8 is_stmt 0 view .LVU238
- 678 004e 2949     		ldr	r1, .L26+16
- 679 0050 4B68     		ldr	r3, [r1, #4]
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 53
-
-
- 680              		.loc 1 234 14 view .LVU239
- 681 0052 43F48033 		orr	r3, r3, #65536
- 682 0056 4B60     		str	r3, [r1, #4]
- 235:Core/src/init.c ****     
- 236:Core/src/init.c ****     /* --- ADC1 --- */
- 237:Core/src/init.c ****     ADC1->CR1 = 0;
- 683              		.loc 1 237 5 is_stmt 1 view .LVU240
- 684              		.loc 1 237 15 is_stmt 0 view .LVU241
- 685 0058 274B     		ldr	r3, .L26+20
- 686 005a 5A60     		str	r2, [r3, #4]
- 238:Core/src/init.c ****     ADC1->CR1 &= ~ADC_CR1_RES;              // Resolution 12 bit (RES = 00)
- 687              		.loc 1 238 5 is_stmt 1 view .LVU242
- 688              		.loc 1 238 9 is_stmt 0 view .LVU243
- 689 005c 5968     		ldr	r1, [r3, #4]
- 690              		.loc 1 238 15 view .LVU244
- 691 005e 21F04071 		bic	r1, r1, #50331648
- 692 0062 5960     		str	r1, [r3, #4]
- 239:Core/src/init.c ****     ADC1->CR1 |= ADC_CR1_SCAN;              // Сканируем несколько каналов
- 693              		.loc 1 239 5 is_stmt 1 view .LVU245
- 694              		.loc 1 239 9 is_stmt 0 view .LVU246
- 695 0064 5968     		ldr	r1, [r3, #4]
- 696              		.loc 1 239 15 view .LVU247
- 697 0066 41F48071 		orr	r1, r1, #256
- 698 006a 5960     		str	r1, [r3, #4]
- 240:Core/src/init.c **** 
- 241:Core/src/init.c ****     ADC1->CR2 = 0;
- 699              		.loc 1 241 5 is_stmt 1 view .LVU248
- 700              		.loc 1 241 15 is_stmt 0 view .LVU249
- 701 006c 9A60     		str	r2, [r3, #8]
- 242:Core/src/init.c ****     ADC1->CR2 &= ~ADC_CR2_ALIGN;            // Data right alignment
- 702              		.loc 1 242 5 is_stmt 1 view .LVU250
- 703              		.loc 1 242 9 is_stmt 0 view .LVU251
- 704 006e 9968     		ldr	r1, [r3, #8]
- 705              		.loc 1 242 15 view .LVU252
- 706 0070 21F40061 		bic	r1, r1, #2048
- 707 0074 9960     		str	r1, [r3, #8]
- 243:Core/src/init.c ****     ADC1->CR2 &= ~ADC_CR2_CONT;             // Отключение непрерывного ска
- 708              		.loc 1 243 5 is_stmt 1 view .LVU253
- 709              		.loc 1 243 9 is_stmt 0 view .LVU254
- 710 0076 9968     		ldr	r1, [r3, #8]
- 711              		.loc 1 243 15 view .LVU255
- 712 0078 21F00201 		bic	r1, r1, #2
- 713 007c 9960     		str	r1, [r3, #8]
- 244:Core/src/init.c ****     ADC1->CR2 |= (9 << ADC_CR2_EXTSEL_Pos); // Начинать преобразования по �
- 714              		.loc 1 244 5 is_stmt 1 view .LVU256
- 715              		.loc 1 244 9 is_stmt 0 view .LVU257
- 716 007e 9968     		ldr	r1, [r3, #8]
- 717              		.loc 1 244 15 view .LVU258
- 718 0080 41F01061 		orr	r1, r1, #150994944
- 719 0084 9960     		str	r1, [r3, #8]
- 245:Core/src/init.c ****     ADC1->CR2 |= ADC_CR2_EXTEN_0;           // Rising trigger on
- 720              		.loc 1 245 5 is_stmt 1 view .LVU259
- 721              		.loc 1 245 9 is_stmt 0 view .LVU260
- 722 0086 9968     		ldr	r1, [r3, #8]
- 723              		.loc 1 245 15 view .LVU261
- 724 0088 41F08051 		orr	r1, r1, #268435456
- 725 008c 9960     		str	r1, [r3, #8]
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 54
-
-
- 246:Core/src/init.c ****     ADC1->CR2 |= ADC_CR2_DMA;               // DMA mode enabled
- 726              		.loc 1 246 5 is_stmt 1 view .LVU262
- 727              		.loc 1 246 9 is_stmt 0 view .LVU263
- 728 008e 9968     		ldr	r1, [r3, #8]
- 729              		.loc 1 246 15 view .LVU264
- 730 0090 41F48071 		orr	r1, r1, #256
- 731 0094 9960     		str	r1, [r3, #8]
- 247:Core/src/init.c ****     ADC1->CR2 |= ADC_CR2_DDS;               // DMA-запросы не снимаются межд�
- 732              		.loc 1 247 5 is_stmt 1 view .LVU265
- 733              		.loc 1 247 9 is_stmt 0 view .LVU266
- 734 0096 9968     		ldr	r1, [r3, #8]
- 735              		.loc 1 247 15 view .LVU267
- 736 0098 41F40071 		orr	r1, r1, #512
- 737 009c 9960     		str	r1, [r3, #8]
- 248:Core/src/init.c **** 
- 249:Core/src/init.c ****     /* Время выборки 56 тактов (SMP=011) — компромисс точност�
- 250:Core/src/init.c ****     ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP0_Pos); 
- 738              		.loc 1 250 5 is_stmt 1 view .LVU268
- 739              		.loc 1 250 9 is_stmt 0 view .LVU269
- 740 009e 1969     		ldr	r1, [r3, #16]
- 741              		.loc 1 250 17 view .LVU270
- 742 00a0 41F00301 		orr	r1, r1, #3
- 743 00a4 1961     		str	r1, [r3, #16]
- 251:Core/src/init.c ****     ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP3_Pos);
- 744              		.loc 1 251 5 is_stmt 1 view .LVU271
- 745              		.loc 1 251 9 is_stmt 0 view .LVU272
- 746 00a6 1969     		ldr	r1, [r3, #16]
- 747              		.loc 1 251 17 view .LVU273
- 748 00a8 41F4C061 		orr	r1, r1, #1536
- 749 00ac 1961     		str	r1, [r3, #16]
- 252:Core/src/init.c **** 
- 253:Core/src/init.c ****     /* Две конверсии: SQ1=ch0, SQ2=ch3. */
- 254:Core/src/init.c ****     ADC1->SQR1 = 0;
- 750              		.loc 1 254 5 is_stmt 1 view .LVU274
- 751              		.loc 1 254 16 is_stmt 0 view .LVU275
- 752 00ae DA62     		str	r2, [r3, #44]
- 255:Core/src/init.c ****     ADC1->SQR1 |= ADC_SQR1_L_0;            // L = 1 -> 2 conversion
- 753              		.loc 1 255 5 is_stmt 1 view .LVU276
- 754              		.loc 1 255 9 is_stmt 0 view .LVU277
- 755 00b0 D96A     		ldr	r1, [r3, #44]
- 756              		.loc 1 255 16 view .LVU278
- 757 00b2 41F48011 		orr	r1, r1, #1048576
- 758 00b6 D962     		str	r1, [r3, #44]
- 256:Core/src/init.c ****     ADC1->SQR3 = 0;
- 759              		.loc 1 256 5 is_stmt 1 view .LVU279
- 760              		.loc 1 256 16 is_stmt 0 view .LVU280
- 761 00b8 5A63     		str	r2, [r3, #52]
- 257:Core/src/init.c ****     ADC1->SQR3 |= (0 << ADC_SQR3_SQ1_Pos); // SQ1 -> channel 0
- 762              		.loc 1 257 5 is_stmt 1 view .LVU281
- 763              		.loc 1 257 9 is_stmt 0 view .LVU282
- 764 00ba 596B     		ldr	r1, [r3, #52]
- 765              		.loc 1 257 16 view .LVU283
- 766 00bc 5963     		str	r1, [r3, #52]
- 258:Core/src/init.c ****     ADC1->SQR3 |= (3 << ADC_SQR3_SQ2_Pos); // SQ2 -> channel 3
- 767              		.loc 1 258 5 is_stmt 1 view .LVU284
- 768              		.loc 1 258 9 is_stmt 0 view .LVU285
- 769 00be 596B     		ldr	r1, [r3, #52]
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 55
-
-
- 770              		.loc 1 258 16 view .LVU286
- 771 00c0 41F06001 		orr	r1, r1, #96
- 772 00c4 5963     		str	r1, [r3, #52]
- 259:Core/src/init.c **** 
- 260:Core/src/init.c ****     ADC1->CR2 |= ADC_CR2_ADON;                  // ADC on without conversion
- 773              		.loc 1 260 5 is_stmt 1 view .LVU287
- 774              		.loc 1 260 9 is_stmt 0 view .LVU288
- 775 00c6 9968     		ldr	r1, [r3, #8]
- 776              		.loc 1 260 15 view .LVU289
- 777 00c8 41F00101 		orr	r1, r1, #1
- 778 00cc 9960     		str	r1, [r3, #8]
- 261:Core/src/init.c ****     for (volatile int i = 0; i < 1000; i++) {}  // tSTAB — пауза после ADON
- 779              		.loc 1 261 5 is_stmt 1 view .LVU290
- 780              	.LBB30:
- 781              		.loc 1 261 10 view .LVU291
- 782              		.loc 1 261 23 is_stmt 0 view .LVU292
- 783 00ce 0192     		str	r2, [sp, #4]
- 784              		.loc 1 261 5 view .LVU293
- 785 00d0 02E0     		b	.L23
- 786              	.L24:
- 787              		.loc 1 261 46 is_stmt 1 discriminator 3 view .LVU294
- 788              		.loc 1 261 41 discriminator 3 view .LVU295
- 789 00d2 019B     		ldr	r3, [sp, #4]
- 790 00d4 0133     		adds	r3, r3, #1
- 791 00d6 0193     		str	r3, [sp, #4]
- 792              	.L23:
- 793              		.loc 1 261 32 discriminator 1 view .LVU296
- 794 00d8 019B     		ldr	r3, [sp, #4]
- 795 00da B3F57A7F 		cmp	r3, #1000
- 796 00de F8DB     		blt	.L24
- 797              	.LBE30:
- 262:Core/src/init.c **** }
- 798              		.loc 1 262 1 is_stmt 0 view .LVU297
- 799 00e0 02B0     		add	sp, sp, #8
- 800              	.LCFI1:
- 801              		.cfi_def_cfa_offset 0
- 802              		@ sp needed
- 803 00e2 7047     		bx	lr
- 804              	.L27:
- 805              		.align	2
- 806              	.L26:
- 807 00e4 00380240 		.word	1073887232
- 808 00e8 00640240 		.word	1073898496
- 809 00ec 4C200140 		.word	1073815628
- 810 00f0 00000000 		.word	g_app
- 811 00f4 00230140 		.word	1073816320
- 812 00f8 00200140 		.word	1073815552
- 813              		.cfi_endproc
- 814              	.LFE146:
- 816              		.text
- 817              	.Letext0:
- 818              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
- 819              		.file 4 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/machine/_defau
- 820              		.file 5 "C:/Programm/tools/xpack-arm-none-eabi-gcc-14.2.1-1.1/arm-none-eabi/include/sys/_stdint.h"
- 821              		.file 6 "Core/inc/app_data.h"
-ARM GAS  C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s 			page 56
+  68              		.loc 2 2032 5 view .LVU10
+  69              		.loc 2 2032 47 is_stmt 0 view .LVU11
+  70 0034 03F55063 		add	r3, r3, #3328
+  71 0038 4022     		movs	r2, #64
+  72 003a 83F82320 		strb	r2, [r3, #35]
+  73              	.LVL1:
+  74              		.loc 2 2032 47 view .LVU12
+  75              	.LBE5:
+  76              	.LBE4:
+  23:Core/peripherials/src/sys_tim.c **** }...
+  77              		.loc 1 23 1 view .LVU13
+  78 003e 7047     		bx	lr
+  79              	.L3:
+  80              		.align	2
+  81              	.L2:
+  82 0040 BF4B0300 		.word	215999
+  83              		.cfi_endproc
+  84              	.LFE141:
+  86              		.text
+  87              	.Letext0:
+  88              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+  89              		.file 4 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ARM GAS  /tmp/ccluEM3J.s 			page 39
 
 
 DEFINED SYMBOLS
-                            *ABS*:00000000 init.c
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:21     .text.SystemClock_Config:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:27     .text.SystemClock_Config:00000000 SystemClock_Config
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:149    .text.SystemClock_Config:00000094 $d
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:157    .text.SysTick_Init_Config:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:163    .text.SysTick_Init_Config:00000000 SysTick_Init_Config
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:218    .text.SysTick_Init_Config:00000040 $d
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:223    .text.GPIO_Config:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:229    .text.GPIO_Config:00000000 GPIO_Config
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:326    .text.GPIO_Config:0000007c $d
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:334    .text.EXTI_Config:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:340    .text.EXTI_Config:00000000 EXTI_Config
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:483    .text.EXTI_Config:00000064 $d
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:490    .text.TIM1_Config:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:496    .text.TIM1_Config:00000000 TIM1_Config
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:588    .text.TIM1_Config:00000068 $d
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:596    .text.ADC1_DMA_Config:00000000 $t
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:602    .text.ADC1_DMA_Config:00000000 ADC1_DMA_Config
-C:\Users\Asus\AppData\Local\Temp\ccCb4WNE.s:807    .text.ADC1_DMA_Config:000000e4 $d
+                            *ABS*:00000000 sys_tim.c
+     /tmp/ccluEM3J.s:21     .text.SysTick_Init_Config:00000000 $t
+     /tmp/ccluEM3J.s:27     .text.SysTick_Init_Config:00000000 SysTick_Init_Config
+     /tmp/ccluEM3J.s:82     .text.SysTick_Init_Config:00000040 $d
 
-UNDEFINED SYMBOLS
-init_config
-g_app
+NO UNDEFINED SYMBOLS

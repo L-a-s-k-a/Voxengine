@@ -64,15 +64,15 @@ endif
 ######################################
 # C sources
 PERIPHERIALS_C = \
-    Core/peripherials/adc1.c \
-    Core/peripherials/extic.c \
-    Core/peripherials/gpio.c \
-    Core/peripherials/rcc.c \
-    Core/peripherials/spi.c \
-    Core/peripherials/sys_tim.c \
-    Core/peripherials/tim1.c \
-    Core/peripherials/tim2.c \
-    Core/peripherials/tim3.c
+    Core/peripherials/src/adc1.c \
+    Core/peripherials/src/exti.c \
+    Core/peripherials/src/gpio.c \
+    Core/peripherials/src/rcc.c \
+    Core/peripherials/src/spi.c \
+    Core/peripherials/src/sys_tim.c \
+    Core/peripherials/src/tim1.c \
+    Core/peripherials/src/tim2.c \
+    Core/peripherials/src/tim3.c
 
 C_SOURCES =  \
 $(SYS) \

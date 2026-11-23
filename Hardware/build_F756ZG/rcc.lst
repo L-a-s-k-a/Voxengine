@@ -1,0 +1,240 @@
+ARM GAS  /tmp/cc1T8cml.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"rcc.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/peripherials/src/rcc.c"
+  20              		.section	.text.SystemClock_Config,"ax",%progbits
+  21              		.align	1
+  22              		.global	SystemClock_Config
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	SystemClock_Config:
+  28              	.LFB141:
+   1:Core/peripherials/src/rcc.c **** #include "rcc.h"
+   2:Core/peripherials/src/rcc.c **** 
+   3:Core/peripherials/src/rcc.c **** /**
+   4:Core/peripherials/src/rcc.c ****  * @brief Тактирование ядра на 216 МГц.
+   5:Core/peripherials/src/rcc.c ****  *
+   6:Core/peripherials/src/rcc.c ****  * Источник: HSE в режиме BYPASS (на Nucleo-144 от ST-Link приходит
+   7:Core/peripherials/src/rcc.c ****  * готовый меандр 8 МГц на OSC_IN, а не сигнал с кварца).
+   8:Core/peripherials/src/rcc.c ****  * Схема: HSE(8) / M(8) = 1 МГц -> * N(432) = 432 МГц -> / P(2) = 216 МГц.
+   9:Core/peripherials/src/rcc.c ****  *       -> / Q(9) = 48 МГц (для USB, сейчас не используется).
+  10:Core/peripherials/src/rcc.c ****  *
+  11:Core/peripherials/src/rcc.c ****  * Почему over-drive: для F7 на 216 МГц обязателен режим Over-drive,
+  12:Core/peripherials/src/rcc.c ****  * иначе ядро не запустится на полной частоте.
+  13:Core/peripherials/src/rcc.c ****  * Почему 7WS: 216 МГц при 3.3 В требуют 7 wait states для Flash.
+  14:Core/peripherials/src/rcc.c ****  */
+  15:Core/peripherials/src/rcc.c **** void SystemClock_Config(void)
+  16:Core/peripherials/src/rcc.c **** {
+  29              		.loc 1 16 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  17:Core/peripherials/src/rcc.c ****     // 1. Включаем режим BYPASS (указывает, что на вход OSC_IN по�
+  18:Core/peripherials/src/rcc.c ****     RCC->CR |= RCC_CR_HSEBYP;
+  34              		.loc 1 18 5 view .LVU1
+  35              		.loc 1 18 8 is_stmt 0 view .LVU2
+  36 0000 244B     		ldr	r3, .L7
+  37 0002 1A68     		ldr	r2, [r3]
+  38              		.loc 1 18 13 view .LVU3
+  39 0004 42F48022 		orr	r2, r2, #262144
+  40 0008 1A60     		str	r2, [r3]
+ARM GAS  /tmp/cc1T8cml.s 			page 2
+
+
+  19:Core/peripherials/src/rcc.c ****     // Включаем HSE (внешний кварц)
+  20:Core/peripherials/src/rcc.c ****     RCC->CR |= RCC_CR_HSEON;
+  41              		.loc 1 20 5 is_stmt 1 view .LVU4
+  42              		.loc 1 20 8 is_stmt 0 view .LVU5
+  43 000a 1A68     		ldr	r2, [r3]
+  44              		.loc 1 20 13 view .LVU6
+  45 000c 42F48032 		orr	r2, r2, #65536
+  46 0010 1A60     		str	r2, [r3]
+  21:Core/peripherials/src/rcc.c ****     while (!(RCC->CR & RCC_CR_HSERDY))
+  47              		.loc 1 21 5 is_stmt 1 view .LVU7
+  48              	.L2:
+  49              		.loc 1 21 12 discriminator 1 view .LVU8
+  50              		.loc 1 21 17 is_stmt 0 discriminator 1 view .LVU9
+  51 0012 204B     		ldr	r3, .L7
+  52 0014 1B68     		ldr	r3, [r3]
+  53              		.loc 1 21 12 discriminator 1 view .LVU10
+  54 0016 13F4003F 		tst	r3, #131072
+  55 001a FAD0     		beq	.L2
+  22:Core/peripherials/src/rcc.c ****         ;
+  23:Core/peripherials/src/rcc.c **** 
+  24:Core/peripherials/src/rcc.c ****     // 2. Включаем питание модуля перегрузки частоты (Over-dr
+  25:Core/peripherials/src/rcc.c ****     RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+  56              		.loc 1 25 5 is_stmt 1 view .LVU11
+  57              		.loc 1 25 8 is_stmt 0 view .LVU12
+  58 001c 1D4A     		ldr	r2, .L7
+  59 001e 136C     		ldr	r3, [r2, #64]
+  60              		.loc 1 25 18 view .LVU13
+  61 0020 43F08053 		orr	r3, r3, #268435456
+  62 0024 1364     		str	r3, [r2, #64]
+  26:Core/peripherials/src/rcc.c ****     PWR->CR1 |= PWR_CR1_ODEN;
+  63              		.loc 1 26 5 is_stmt 1 view .LVU14
+  64              		.loc 1 26 8 is_stmt 0 view .LVU15
+  65 0026 A2F5E432 		sub	r2, r2, #116736
+  66 002a 1368     		ldr	r3, [r2]
+  67              		.loc 1 26 14 view .LVU16
+  68 002c 43F48033 		orr	r3, r3, #65536
+  69 0030 1360     		str	r3, [r2]
+  27:Core/peripherials/src/rcc.c ****     while (!(PWR->CSR1 & PWR_CSR1_ODRDY))
+  70              		.loc 1 27 5 is_stmt 1 view .LVU17
+  71              	.L3:
+  72              		.loc 1 27 12 discriminator 1 view .LVU18
+  73              		.loc 1 27 17 is_stmt 0 discriminator 1 view .LVU19
+  74 0032 194B     		ldr	r3, .L7+4
+  75 0034 5B68     		ldr	r3, [r3, #4]
+  76              		.loc 1 27 12 discriminator 1 view .LVU20
+  77 0036 13F4803F 		tst	r3, #65536
+  78 003a FAD0     		beq	.L3
+  28:Core/peripherials/src/rcc.c ****         ;
+  29:Core/peripherials/src/rcc.c **** 
+  30:Core/peripherials/src/rcc.c ****     PWR->CR1 |= PWR_CR1_ODSWEN;
+  79              		.loc 1 30 5 is_stmt 1 view .LVU21
+  80              		.loc 1 30 8 is_stmt 0 view .LVU22
+  81 003c 164A     		ldr	r2, .L7+4
+  82 003e 1368     		ldr	r3, [r2]
+  83              		.loc 1 30 14 view .LVU23
+  84 0040 43F40033 		orr	r3, r3, #131072
+  85 0044 1360     		str	r3, [r2]
+ARM GAS  /tmp/cc1T8cml.s 			page 3
+
+
+  31:Core/peripherials/src/rcc.c ****     while (!(PWR->CSR1 & PWR_CSR1_ODSWRDY))
+  86              		.loc 1 31 5 is_stmt 1 view .LVU24
+  87              	.L4:
+  88              		.loc 1 31 12 discriminator 1 view .LVU25
+  89              		.loc 1 31 17 is_stmt 0 discriminator 1 view .LVU26
+  90 0046 144B     		ldr	r3, .L7+4
+  91 0048 5B68     		ldr	r3, [r3, #4]
+  92              		.loc 1 31 12 discriminator 1 view .LVU27
+  93 004a 13F4003F 		tst	r3, #131072
+  94 004e FAD0     		beq	.L4
+  32:Core/peripherials/src/rcc.c ****         ;
+  33:Core/peripherials/src/rcc.c **** 
+  34:Core/peripherials/src/rcc.c ****     // 3. Настройка задержки Flash (7 Wait States необходимы для ра
+  35:Core/peripherials/src/rcc.c ****     FLASH->ACR = FLASH_ACR_LATENCY_7WS | FLASH_ACR_PRFTEN;
+  95              		.loc 1 35 5 is_stmt 1 view .LVU28
+  96              		.loc 1 35 16 is_stmt 0 view .LVU29
+  97 0050 124B     		ldr	r3, .L7+8
+  98 0052 40F20712 		movw	r2, #263
+  99 0056 1A60     		str	r2, [r3]
+  36:Core/peripherials/src/rcc.c **** 
+  37:Core/peripherials/src/rcc.c ****     // 4. Конфигурация главного PLL: HSE = 8MHz. Цель = 216MHz.
+  38:Core/peripherials/src/rcc.c ****     // Формула: Частота = (HSE / M) * N / P
+  39:Core/peripherials/src/rcc.c ****     // M = 8 (8/8 = 1MHz на входе PLL), N = 432 (1*432 = 432MHz), P = 2 (432/2 = 216MHz)
+  40:Core/peripherials/src/rcc.c ****     // Q = 9 (для шины USB 48MHz, если понадобится: 432/9 = 48MHz)
+  41:Core/peripherials/src/rcc.c ****     RCC->PLLCFGR = (8 << RCC_PLLCFGR_PLLM_Pos) |
+ 100              		.loc 1 41 5 is_stmt 1 view .LVU30
+ 101              		.loc 1 41 18 is_stmt 0 view .LVU31
+ 102 0058 A3F58063 		sub	r3, r3, #1024
+ 103 005c 104A     		ldr	r2, .L7+12
+ 104 005e 5A60     		str	r2, [r3, #4]
+  42:Core/peripherials/src/rcc.c ****                    (432 << RCC_PLLCFGR_PLLN_Pos) |
+  43:Core/peripherials/src/rcc.c ****                    (0 << RCC_PLLCFGR_PLLP_Pos) | // 00 означает P=2
+  44:Core/peripherials/src/rcc.c ****                    (RCC_PLLCFGR_PLLSRC_HSE) |
+  45:Core/peripherials/src/rcc.c ****                    (9 << RCC_PLLCFGR_PLLQ_Pos);
+  46:Core/peripherials/src/rcc.c **** 
+  47:Core/peripherials/src/rcc.c ****     // Включаем PLL
+  48:Core/peripherials/src/rcc.c ****     RCC->CR |= RCC_CR_PLLON;
+ 105              		.loc 1 48 5 is_stmt 1 view .LVU32
+ 106              		.loc 1 48 8 is_stmt 0 view .LVU33
+ 107 0060 1A68     		ldr	r2, [r3]
+ 108              		.loc 1 48 13 view .LVU34
+ 109 0062 42F08072 		orr	r2, r2, #16777216
+ 110 0066 1A60     		str	r2, [r3]
+  49:Core/peripherials/src/rcc.c ****     while (!(RCC->CR & RCC_CR_PLLRDY))
+ 111              		.loc 1 49 5 is_stmt 1 view .LVU35
+ 112              	.L5:
+ 113              		.loc 1 49 12 discriminator 1 view .LVU36
+ 114              		.loc 1 49 17 is_stmt 0 discriminator 1 view .LVU37
+ 115 0068 0A4B     		ldr	r3, .L7
+ 116 006a 1B68     		ldr	r3, [r3]
+ 117              		.loc 1 49 12 discriminator 1 view .LVU38
+ 118 006c 13F0007F 		tst	r3, #33554432
+ 119 0070 FAD0     		beq	.L5
+  50:Core/peripherials/src/rcc.c ****         ;
+  51:Core/peripherials/src/rcc.c **** 
+  52:Core/peripherials/src/rcc.c ****     // 5. Настройка делителей шин: AHB = 1 (216MHz), APB1 = 4 (54MHz), APB2 = 
+  53:Core/peripherials/src/rcc.c ****     RCC->CFGR |= RCC_CFGR_HPRE_DIV1 |
+ARM GAS  /tmp/cc1T8cml.s 			page 4
+
+
+ 120              		.loc 1 53 5 is_stmt 1 view .LVU39
+ 121              		.loc 1 53 8 is_stmt 0 view .LVU40
+ 122 0072 084B     		ldr	r3, .L7
+ 123 0074 9A68     		ldr	r2, [r3, #8]
+ 124              		.loc 1 53 15 view .LVU41
+ 125 0076 42F41442 		orr	r2, r2, #37888
+ 126 007a 9A60     		str	r2, [r3, #8]
+  54:Core/peripherials/src/rcc.c ****                  RCC_CFGR_PPRE1_DIV4 |
+  55:Core/peripherials/src/rcc.c ****                  RCC_CFGR_PPRE2_DIV2;
+  56:Core/peripherials/src/rcc.c **** 
+  57:Core/peripherials/src/rcc.c ****     // Переключаем системное тактирование на PLL
+  58:Core/peripherials/src/rcc.c ****     RCC->CFGR |= RCC_CFGR_SW_PLL;
+ 127              		.loc 1 58 5 is_stmt 1 view .LVU42
+ 128              		.loc 1 58 8 is_stmt 0 view .LVU43
+ 129 007c 9A68     		ldr	r2, [r3, #8]
+ 130              		.loc 1 58 15 view .LVU44
+ 131 007e 42F00202 		orr	r2, r2, #2
+ 132 0082 9A60     		str	r2, [r3, #8]
+  59:Core/peripherials/src/rcc.c ****     while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
+ 133              		.loc 1 59 5 is_stmt 1 view .LVU45
+ 134              	.L6:
+ 135              		.loc 1 59 39 discriminator 1 view .LVU46
+ 136              		.loc 1 59 16 is_stmt 0 discriminator 1 view .LVU47
+ 137 0084 034B     		ldr	r3, .L7
+ 138 0086 9B68     		ldr	r3, [r3, #8]
+ 139              		.loc 1 59 23 discriminator 1 view .LVU48
+ 140 0088 03F00C03 		and	r3, r3, #12
+ 141              		.loc 1 59 39 discriminator 1 view .LVU49
+ 142 008c 082B     		cmp	r3, #8
+ 143 008e F9D1     		bne	.L6
+  60:Core/peripherials/src/rcc.c ****         ;
+  61:Core/peripherials/src/rcc.c **** }...
+ 144              		.loc 1 61 1 view .LVU50
+ 145 0090 7047     		bx	lr
+ 146              	.L8:
+ 147 0092 00BF     		.align	2
+ 148              	.L7:
+ 149 0094 00380240 		.word	1073887232
+ 150 0098 00700040 		.word	1073770496
+ 151 009c 003C0240 		.word	1073888256
+ 152 00a0 086C4009 		.word	155216904
+ 153              		.cfi_endproc
+ 154              	.LFE141:
+ 156              		.text
+ 157              	.Letext0:
+ 158              		.file 2 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 159              		.file 3 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ARM GAS  /tmp/cc1T8cml.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 rcc.c
+     /tmp/cc1T8cml.s:21     .text.SystemClock_Config:00000000 $t
+     /tmp/cc1T8cml.s:27     .text.SystemClock_Config:00000000 SystemClock_Config
+     /tmp/cc1T8cml.s:149    .text.SystemClock_Config:00000094 $d
+
+NO UNDEFINED SYMBOLS

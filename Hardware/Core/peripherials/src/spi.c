@@ -51,7 +51,7 @@ void SPI1_Config(void)
     SPI1->CR1 |= SPI_CR1_SPE;
 }
 
-static void SPI_DMA_Init(void)
+void SPI_DMA_Init(void)
 {
     RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 

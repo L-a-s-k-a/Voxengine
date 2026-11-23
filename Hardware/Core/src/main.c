@@ -1,6 +1,7 @@
 #include "main.h"
 
 void P10_TestPixel(void);
+void SPI1_TransmitByte(uint8_t data);
 
 /**
  * @brief Точка входа.
@@ -15,11 +16,10 @@ int main(void)
     SPI1_Init();
 
     P10_TestPixel();
-    // HUB12_SetPixel(1, 1, true); // NADA CHECKNUT!!!
 
     while (1)
-    {
-
+    {   
+        
     }
 }
 
@@ -44,7 +44,7 @@ void P10_TestPixel(void)
     const uint8_t data[16] =
     {
         0xFF, 0xFF, 0xFF, 0x7F,
-        0xFF, 0xFF, 0xBF, 0xFF,
+        0x7F, 0xFF, 0xBF, 0xDF,
         0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xBF, 0xFF, 0xFF
     };
@@ -73,4 +73,23 @@ void P10_TestPixel(void)
     /* Enable display */
 
     GPIOG->BSRR = (1U << 11U);
+}
+
+void SPI1_TransmitByte(uint8_t data)
+{
+    /* Wait until transmit buffer is empty */
+
+    while (!(SPI1->SR & SPI_SR_TXE))
+    {
+    }
+
+    /* Write data */
+
+    *(__IO uint8_t *)&SPI1->DR = data;
+
+    /* Wait until transmission is complete */
+
+    while (SPI1->SR & SPI_SR_BSY)
+    {
+    }
 }

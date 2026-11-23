@@ -1,0 +1,90 @@
+ARM GAS  /tmp/ccpe4XsT.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"gpio.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/peripherials/src/gpio.c"
+  20              		.section	.text.GPIO_Config,"ax",%progbits
+  21              		.align	1
+  22              		.global	GPIO_Config
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	GPIO_Config:
+  28              	.LFB141:
+   1:Core/peripherials/src/gpio.c **** #include "gpio.h"
+   2:Core/peripherials/src/gpio.c **** 
+   3:Core/peripherials/src/gpio.c **** void GPIO_Config(void){
+  29              		.loc 1 3 23 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+   4:Core/peripherials/src/gpio.c ****     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOGEN;
+  34              		.loc 1 4 5 view .LVU1
+  35              		.loc 1 4 8 is_stmt 0 view .LVU2
+  36 0000 064A     		ldr	r2, .L2
+  37 0002 136B     		ldr	r3, [r2, #48]
+  38              		.loc 1 4 18 view .LVU3
+  39 0004 43F04003 		orr	r3, r3, #64
+  40 0008 1363     		str	r3, [r2, #48]
+   5:Core/peripherials/src/gpio.c **** 
+   6:Core/peripherials/src/gpio.c ****     GPIOG->MODER |= GPIO_MODER_MODER10_0 | 
+  41              		.loc 1 6 5 is_stmt 1 view .LVU4
+  42              		.loc 1 6 10 is_stmt 0 view .LVU5
+  43 000a 054B     		ldr	r3, .L2+4
+  44 000c 1A68     		ldr	r2, [r3]
+  45              		.loc 1 6 18 view .LVU6
+  46 000e 42F0AA62 		orr	r2, r2, #89128960
+  47 0012 1A60     		str	r2, [r3]
+   7:Core/peripherials/src/gpio.c ****                     GPIO_MODER_MODER11_0 |
+   8:Core/peripherials/src/gpio.c ****                     GPIO_MODER_MODER12_0 |
+   9:Core/peripherials/src/gpio.c ****                     GPIO_MODER_MODER13_0;
+  10:Core/peripherials/src/gpio.c ****     GPIOG->BSRR = 0U;
+  48              		.loc 1 10 5 is_stmt 1 view .LVU7
+ARM GAS  /tmp/ccpe4XsT.s 			page 2
+
+
+  49              		.loc 1 10 17 is_stmt 0 view .LVU8
+  50 0014 0022     		movs	r2, #0
+  51 0016 9A61     		str	r2, [r3, #24]
+  11:Core/peripherials/src/gpio.c **** }
+  52              		.loc 1 11 1 view .LVU9
+  53 0018 7047     		bx	lr
+  54              	.L3:
+  55 001a 00BF     		.align	2
+  56              	.L2:
+  57 001c 00380240 		.word	1073887232
+  58 0020 00180240 		.word	1073879040
+  59              		.cfi_endproc
+  60              	.LFE141:
+  62              		.text
+  63              	.Letext0:
+  64              		.file 2 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+  65              		.file 3 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ARM GAS  /tmp/ccpe4XsT.s 			page 3
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 gpio.c
+     /tmp/ccpe4XsT.s:21     .text.GPIO_Config:00000000 $t
+     /tmp/ccpe4XsT.s:27     .text.GPIO_Config:00000000 GPIO_Config
+     /tmp/ccpe4XsT.s:57     .text.GPIO_Config:0000001c $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,223 @@
+ARM GAS  /tmp/ccpk7IWd.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"tim1.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/peripherials/src/tim1.c"
+  20              		.section	.text.TIM1_Config,"ax",%progbits
+  21              		.align	1
+  22              		.global	TIM1_Config
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	TIM1_Config:
+  28              	.LFB141:
+   1:Core/peripherials/src/tim1.c **** #include "tim1.h"
+   2:Core/peripherials/src/tim1.c **** #include "app_data.h"
+   3:Core/peripherials/src/tim1.c **** 
+   4:Core/peripherials/src/tim1.c **** /**
+   5:Core/peripherials/src/tim1.c ****  * @brief TIM1 в режиме PWM mode 1 на канале 1.
+   6:Core/peripherials/src/tim1.c ****  *
+   7:Core/peripherials/src/tim1.c ****  * PSC/ARR берутся из init_config (в main: PSC=216, ARR=1000).
+   8:Core/peripherials/src/tim1.c ****  * При тактировании TIM1 от APB2=108 МГц:
+   9:Core/peripherials/src/tim1.c ****  *   f_PWM = 108e6 / (PSC * ARR) = 108e6 / (216*1000) = 500 Гц.
+  10:Core/peripherials/src/tim1.c ****  * 500 Гц — типично для коллекторного двигателя: не пищи�
+  11:Core/peripherials/src/tim1.c ****  * перегружает моторный драйвер.
+  12:Core/peripherials/src/tim1.c ****  *
+  13:Core/peripherials/src/tim1.c ****  * CCR1 (скважность) меняется из main: g_app.pulse -> TIM1->CCR1.
+  14:Core/peripherials/src/tim1.c ****  * TRGO = Update event — этим сигналом триггерится ADC.
+  15:Core/peripherials/src/tim1.c ****  */
+  16:Core/peripherials/src/tim1.c **** void TIM1_Config(void){
+  29              		.loc 1 16 23 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  17:Core/peripherials/src/tim1.c ****     RCC->APB2ENR |= RCC_APB2ENR_TIM1EN;
+  34              		.loc 1 17 5 view .LVU1
+  35              		.loc 1 17 8 is_stmt 0 view .LVU2
+  36 0000 254B     		ldr	r3, .L2
+  37 0002 5A6C     		ldr	r2, [r3, #68]
+  38              		.loc 1 17 18 view .LVU3
+  39 0004 42F00102 		orr	r2, r2, #1
+  40 0008 5A64     		str	r2, [r3, #68]
+  18:Core/peripherials/src/tim1.c ****     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;
+ARM GAS  /tmp/ccpk7IWd.s 			page 2
+
+
+  41              		.loc 1 18 5 is_stmt 1 view .LVU4
+  42              		.loc 1 18 8 is_stmt 0 view .LVU5
+  43 000a 1A6B     		ldr	r2, [r3, #48]
+  44              		.loc 1 18 18 view .LVU6
+  45 000c 42F01002 		orr	r2, r2, #16
+  46 0010 1A63     		str	r2, [r3, #48]
+  19:Core/peripherials/src/tim1.c **** 
+  20:Core/peripherials/src/tim1.c ****     /* PE9 -> AF1 (TIM1_CH1): MODER = 10, AFR[1].AFRH1 = 0001. */
+  21:Core/peripherials/src/tim1.c ****     GPIOE->MODER  &= ~GPIO_MODER_MODER9_Msk; 
+  47              		.loc 1 21 5 is_stmt 1 view .LVU7
+  48              		.loc 1 21 10 is_stmt 0 view .LVU8
+  49 0012 A3F52053 		sub	r3, r3, #10240
+  50 0016 1A68     		ldr	r2, [r3]
+  51              		.loc 1 21 19 view .LVU9
+  52 0018 22F44022 		bic	r2, r2, #786432
+  53 001c 1A60     		str	r2, [r3]
+  22:Core/peripherials/src/tim1.c ****     GPIOE->MODER  |= (2 << GPIO_MODER_MODER9_Pos); // PE9 -> alternative function
+  54              		.loc 1 22 5 is_stmt 1 view .LVU10
+  55              		.loc 1 22 10 is_stmt 0 view .LVU11
+  56 001e 1A68     		ldr	r2, [r3]
+  57              		.loc 1 22 19 view .LVU12
+  58 0020 42F40022 		orr	r2, r2, #524288
+  59 0024 1A60     		str	r2, [r3]
+  23:Core/peripherials/src/tim1.c ****     GPIOE->AFR[1] &= ~GPIO_AFRH_AFRH1_Msk;
+  60              		.loc 1 23 5 is_stmt 1 view .LVU13
+  61              		.loc 1 23 15 is_stmt 0 view .LVU14
+  62 0026 5A6A     		ldr	r2, [r3, #36]
+  63              		.loc 1 23 19 view .LVU15
+  64 0028 22F0F002 		bic	r2, r2, #240
+  65 002c 5A62     		str	r2, [r3, #36]
+  24:Core/peripherials/src/tim1.c ****     GPIOE->AFR[1] |= GPIO_AFRH_AFRH1_0; // PE9 -> CCR1 from TIM1 (PWM)
+  66              		.loc 1 24 5 is_stmt 1 view .LVU16
+  67              		.loc 1 24 15 is_stmt 0 view .LVU17
+  68 002e 5A6A     		ldr	r2, [r3, #36]
+  69              		.loc 1 24 19 view .LVU18
+  70 0030 42F01002 		orr	r2, r2, #16
+  71 0034 5A62     		str	r2, [r3, #36]
+  25:Core/peripherials/src/tim1.c **** 
+  26:Core/peripherials/src/tim1.c ****     TIM1->PSC  = init_config.PSC - 1;
+  72              		.loc 1 26 5 is_stmt 1 view .LVU19
+  73              		.loc 1 26 29 is_stmt 0 view .LVU20
+  74 0036 1949     		ldr	r1, .L2+4
+  75 0038 4A88     		ldrh	r2, [r1, #2]
+  76 003a 92B2     		uxth	r2, r2
+  77              		.loc 1 26 34 view .LVU21
+  78 003c 013A     		subs	r2, r2, #1
+  79              		.loc 1 26 16 view .LVU22
+  80 003e A3F58833 		sub	r3, r3, #69632
+  81 0042 9A62     		str	r2, [r3, #40]
+  27:Core/peripherials/src/tim1.c ****     TIM1->ARR  = init_config.ARR - 1;
+  82              		.loc 1 27 5 is_stmt 1 view .LVU23
+  83              		.loc 1 27 29 is_stmt 0 view .LVU24
+  84 0044 0A88     		ldrh	r2, [r1]
+  85 0046 92B2     		uxth	r2, r2
+  86              		.loc 1 27 34 view .LVU25
+  87 0048 013A     		subs	r2, r2, #1
+  88              		.loc 1 27 16 view .LVU26
+ARM GAS  /tmp/ccpk7IWd.s 			page 3
+
+
+  89 004a DA62     		str	r2, [r3, #44]
+  28:Core/peripherials/src/tim1.c **** 
+  29:Core/peripherials/src/tim1.c ****     /* Канал 1: PWM mode 1, preload enable (CCR обновляется на UEV,
+  30:Core/peripherials/src/tim1.c ****      * чтобы не было глитчей при изменении скважности). 
+  31:Core/peripherials/src/tim1.c ****      */
+  32:Core/peripherials/src/tim1.c ****     TIM1->CCMR1 &= ~TIM_CCMR1_CC1S_Msk;         // CC1 = output
+  90              		.loc 1 32 5 is_stmt 1 view .LVU27
+  91              		.loc 1 32 9 is_stmt 0 view .LVU28
+  92 004c 9A69     		ldr	r2, [r3, #24]
+  93              		.loc 1 32 17 view .LVU29
+  94 004e 22F00302 		bic	r2, r2, #3
+  95 0052 9A61     		str	r2, [r3, #24]
+  33:Core/peripherials/src/tim1.c ****     TIM1->CCMR1 |= TIM_CCMR1_OC1PE;             // Preload
+  96              		.loc 1 33 5 is_stmt 1 view .LVU30
+  97              		.loc 1 33 9 is_stmt 0 view .LVU31
+  98 0054 9A69     		ldr	r2, [r3, #24]
+  99              		.loc 1 33 17 view .LVU32
+ 100 0056 42F00802 		orr	r2, r2, #8
+ 101 005a 9A61     		str	r2, [r3, #24]
+  34:Core/peripherials/src/tim1.c ****     TIM1->CCMR1 &= ~TIM_CCMR1_OC1M;
+ 102              		.loc 1 34 5 is_stmt 1 view .LVU33
+ 103              		.loc 1 34 9 is_stmt 0 view .LVU34
+ 104 005c 9969     		ldr	r1, [r3, #24]
+ 105              		.loc 1 34 17 view .LVU35
+ 106 005e 104A     		ldr	r2, .L2+8
+ 107 0060 0A40     		ands	r2, r2, r1
+ 108 0062 9A61     		str	r2, [r3, #24]
+  35:Core/peripherials/src/tim1.c ****     TIM1->CCMR1 |= (6 << TIM_CCMR1_OC1M_Pos);   // 110 - PWM mode 1
+ 109              		.loc 1 35 5 is_stmt 1 view .LVU36
+ 110              		.loc 1 35 9 is_stmt 0 view .LVU37
+ 111 0064 9A69     		ldr	r2, [r3, #24]
+ 112              		.loc 1 35 17 view .LVU38
+ 113 0066 42F06002 		orr	r2, r2, #96
+ 114 006a 9A61     		str	r2, [r3, #24]
+  36:Core/peripherials/src/tim1.c ****     TIM1->CCER  |= TIM_CCER_CC1E;               // Включаем выход канала 1
+ 115              		.loc 1 36 5 is_stmt 1 view .LVU39
+ 116              		.loc 1 36 9 is_stmt 0 view .LVU40
+ 117 006c 1A6A     		ldr	r2, [r3, #32]
+ 118              		.loc 1 36 17 view .LVU41
+ 119 006e 42F00102 		orr	r2, r2, #1
+ 120 0072 1A62     		str	r2, [r3, #32]
+  37:Core/peripherials/src/tim1.c ****     TIM1->BDTR  |= TIM_BDTR_MOE;                // MOE обязателен для выходов
+ 121              		.loc 1 37 5 is_stmt 1 view .LVU42
+ 122              		.loc 1 37 9 is_stmt 0 view .LVU43
+ 123 0074 5A6C     		ldr	r2, [r3, #68]
+ 124              		.loc 1 37 17 view .LVU44
+ 125 0076 42F40042 		orr	r2, r2, #32768
+ 126 007a 5A64     		str	r2, [r3, #68]
+  38:Core/peripherials/src/tim1.c **** 
+  39:Core/peripherials/src/tim1.c ****     TIM1->EGR   |= TIM_EGR_UG;                  // Применить PSC/ARR сейчас
+ 127              		.loc 1 39 5 is_stmt 1 view .LVU45
+ 128              		.loc 1 39 9 is_stmt 0 view .LVU46
+ 129 007c 5A69     		ldr	r2, [r3, #20]
+ 130              		.loc 1 39 17 view .LVU47
+ 131 007e 42F00102 		orr	r2, r2, #1
+ 132 0082 5A61     		str	r2, [r3, #20]
+  40:Core/peripherials/src/tim1.c ****     TIM1->CR2   |= (2 << TIM_CR2_MMS_Pos);      // TRGO = Update event (для ADC)
+ARM GAS  /tmp/ccpk7IWd.s 			page 4
+
+
+ 133              		.loc 1 40 5 is_stmt 1 view .LVU48
+ 134              		.loc 1 40 9 is_stmt 0 view .LVU49
+ 135 0084 5A68     		ldr	r2, [r3, #4]
+ 136              		.loc 1 40 17 view .LVU50
+ 137 0086 42F02002 		orr	r2, r2, #32
+ 138 008a 5A60     		str	r2, [r3, #4]
+  41:Core/peripherials/src/tim1.c ****     TIM1->CR1   |= TIM_CR1_CEN;                 // Запуск счёта
+ 139              		.loc 1 41 5 is_stmt 1 view .LVU51
+ 140              		.loc 1 41 9 is_stmt 0 view .LVU52
+ 141 008c 1A68     		ldr	r2, [r3]
+ 142              		.loc 1 41 17 view .LVU53
+ 143 008e 42F00102 		orr	r2, r2, #1
+ 144 0092 1A60     		str	r2, [r3]
+  42:Core/peripherials/src/tim1.c **** }
+ 145              		.loc 1 42 1 view .LVU54
+ 146 0094 7047     		bx	lr
+ 147              	.L3:
+ 148 0096 00BF     		.align	2
+ 149              	.L2:
+ 150 0098 00380240 		.word	1073887232
+ 151 009c 00000000 		.word	init_config
+ 152 00a0 8FFFFEFF 		.word	-65649
+ 153              		.cfi_endproc
+ 154              	.LFE141:
+ 156              		.text
+ 157              	.Letext0:
+ 158              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 159              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 160              		.file 4 "Core/inc/app_data.h"
+ARM GAS  /tmp/ccpk7IWd.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 tim1.c
+     /tmp/ccpk7IWd.s:21     .text.TIM1_Config:00000000 $t
+     /tmp/ccpk7IWd.s:27     .text.TIM1_Config:00000000 TIM1_Config
+     /tmp/ccpk7IWd.s:150    .text.TIM1_Config:00000098 $d
+
+UNDEFINED SYMBOLS
+init_config

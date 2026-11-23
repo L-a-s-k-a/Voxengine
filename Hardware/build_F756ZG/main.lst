@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccAigUat.s 			page 1
+ARM GAS  /tmp/ccHBxWiY.s 			page 1
 
 
    1              		.cpu cortex-m7
@@ -20,47 +20,36 @@ ARM GAS  /tmp/ccAigUat.s 			page 1
   17              	.Ltext0:
   18              		.cfi_sections	.debug_frame
   19              		.file 1 "Core/src/main.c"
-  20              		.section	.rodata.P10_TestPixel.str1.4,"aMS",%progbits,1
-  21              		.align	2
-  22              	.LC0:
-  23 0000 FFFFFF7F 		.ascii	"\377\377\377\177\377\377\277\377\377\377\377\377\377"
-  23      FFFFBFFF 
-  23      FFFFFFFF 
-  23      FF
-  24 000d BFFFFF00 		.ascii	"\277\377\377\000"
-  25              		.section	.text.P10_TestPixel,"ax",%progbits
-  26              		.align	1
-  27              		.global	P10_TestPixel
-  28              		.syntax unified
-  29              		.thumb
-  30              		.thumb_func
-  32              	P10_TestPixel:
-  33              	.LFB142:
+  20              		.section	.text.SPI1_TransmitByte,"ax",%progbits
+  21              		.align	1
+  22              		.global	SPI1_TransmitByte
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	SPI1_TransmitByte:
+  28              	.LFB143:
    1:Core/src/main.c **** #include "main.h"
    2:Core/src/main.c **** 
    3:Core/src/main.c **** void P10_TestPixel(void);
-   4:Core/src/main.c **** 
-   5:Core/src/main.c **** /**
-   6:Core/src/main.c ****  * @brief Точка входа.
-   7:Core/src/main.c ****  */
-   8:Core/src/main.c **** int main(void)
-   9:Core/src/main.c **** {
-  10:Core/src/main.c ****     init_config.PSC = 216;
-  11:Core/src/main.c ****     init_config.ARR = 1000;
-  12:Core/src/main.c ****     SystemClock_Config();
-  13:Core/src/main.c ****     
-  14:Core/src/main.c ****     GPIO_Config();
-  15:Core/src/main.c ****     SPI1_Init();
-  16:Core/src/main.c **** 
-  17:Core/src/main.c ****     P10_TestPixel();
-  18:Core/src/main.c ****     // HUB12_SetPixel(1, 1, true); // NADA CHECKNUT!!!
+   4:Core/src/main.c **** void SPI1_TransmitByte(uint8_t data);
+   5:Core/src/main.c **** 
+   6:Core/src/main.c **** /**
+   7:Core/src/main.c ****  * @brief Точка входа.
+   8:Core/src/main.c ****  */
+   9:Core/src/main.c **** int main(void)
+  10:Core/src/main.c **** {
+  11:Core/src/main.c ****     init_config.PSC = 216;
+  12:Core/src/main.c ****     init_config.ARR = 1000;
+  13:Core/src/main.c ****     SystemClock_Config();
+  14:Core/src/main.c ****     
+  15:Core/src/main.c ****     GPIO_Config();
+  16:Core/src/main.c ****     SPI1_Init();
+  17:Core/src/main.c **** 
+  18:Core/src/main.c ****     P10_TestPixel();
   19:Core/src/main.c **** 
   20:Core/src/main.c ****     while (1)
   21:Core/src/main.c ****     {
   22:Core/src/main.c **** 
-ARM GAS  /tmp/ccAigUat.s 			page 2
-
-
   23:Core/src/main.c ****     }
   24:Core/src/main.c **** }
   25:Core/src/main.c **** 
@@ -69,23 +58,14 @@ ARM GAS  /tmp/ccAigUat.s 			page 1
   28:Core/src/main.c **** R	        PA7 (SPI1 MOSI)
   29:Core/src/main.c **** SCLK(LAT)   PG10 Legasy PB0
   30:Core/src/main.c **** OE	        PG11 Legasy PB1
+ARM GAS  /tmp/ccHBxWiY.s 			page 2
+
+
   31:Core/src/main.c **** A	        PG12 Legasy PB2
   32:Core/src/main.c **** B	        PG13 Legasy PB10
   33:Core/src/main.c **** */
   34:Core/src/main.c **** void P10_TestPixel(void)
   35:Core/src/main.c **** {
-  34              		.loc 1 35 1 view -0
-  35              		.cfi_startproc
-  36              		@ args = 0, pretend = 0, frame = 16
-  37              		@ frame_needed = 0, uses_anonymous_args = 0
-  38 0000 10B5     		push	{r4, lr}
-  39              	.LCFI0:
-  40              		.cfi_def_cfa_offset 8
-  41              		.cfi_offset 4, -8
-  42              		.cfi_offset 14, -4
-  43 0002 84B0     		sub	sp, sp, #16
-  44              	.LCFI1:
-  45              		.cfi_def_cfa_offset 24
   36:Core/src/main.c ****     /*
   37:Core/src/main.c ****      * 128 bits = 16 bytes.
   38:Core/src/main.c ****      * 1 pixel ON, all other pixels OFF.
@@ -95,15 +75,9 @@ ARM GAS  /tmp/ccAigUat.s 			page 1
   42:Core/src/main.c ****      */
   43:Core/src/main.c **** 
   44:Core/src/main.c ****     const uint8_t data[16] =
-  46              		.loc 1 44 5 view .LVU1
-  47              		.loc 1 44 19 is_stmt 0 view .LVU2
-  48 0004 134B     		ldr	r3, .L5
-  49 0006 0FCB     		ldm	r3, {r0, r1, r2, r3}
-  50 0008 04AC     		add	r4, sp, #16
-  51 000a 04E90F00 		stmdb	r4, {r0, r1, r2, r3}
   45:Core/src/main.c ****     {
   46:Core/src/main.c ****         0xFF, 0xFF, 0xFF, 0x7F,
-  47:Core/src/main.c ****         0xFF, 0xFF, 0xBF, 0xFF,
+  47:Core/src/main.c ****         0x7F, 0xFF, 0xBF, 0xDF,
   48:Core/src/main.c ****         0xFF, 0xFF, 0xFF, 0xFF,
   49:Core/src/main.c ****         0xFF, 0xBF, 0xFF, 0xFF
   50:Core/src/main.c ****     };
@@ -111,193 +85,319 @@ ARM GAS  /tmp/ccAigUat.s 			page 1
   52:Core/src/main.c ****     /* Disable display during data transfer */
   53:Core/src/main.c **** 
   54:Core/src/main.c ****     GPIOG->BSRR = (1U << (11U + 16U));
-  52              		.loc 1 54 5 is_stmt 1 view .LVU3
-  53              		.loc 1 54 17 is_stmt 0 view .LVU4
-  54 000e 124B     		ldr	r3, .L5+4
-  55 0010 4FF00062 		mov	r2, #134217728
-  56 0014 9A61     		str	r2, [r3, #24]
   55:Core/src/main.c **** 
   56:Core/src/main.c ****     /* Select scan address 00 */
-ARM GAS  /tmp/ccAigUat.s 			page 3
-
-
   57:Core/src/main.c **** 
   58:Core/src/main.c ****     GPIOG->BSRR = (1U << (12U + 16U));
-  57              		.loc 1 58 5 is_stmt 1 view .LVU5
-  58              		.loc 1 58 17 is_stmt 0 view .LVU6
-  59 0016 4FF08052 		mov	r2, #268435456
-  60 001a 9A61     		str	r2, [r3, #24]
   59:Core/src/main.c ****     GPIOG->BSRR = (1U << (13U + 16U));
-  61              		.loc 1 59 5 is_stmt 1 view .LVU7
-  62              		.loc 1 59 17 is_stmt 0 view .LVU8
-  63 001c 4FF00052 		mov	r2, #536870912
-  64 0020 9A61     		str	r2, [r3, #24]
   60:Core/src/main.c **** 
   61:Core/src/main.c ****     /* Send 128 bits */
   62:Core/src/main.c **** 
   63:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
-  65              		.loc 1 63 5 is_stmt 1 view .LVU9
-  66              	.LBB2:
-  67              		.loc 1 63 10 view .LVU10
-  68              	.LVL0:
-  69              		.loc 1 63 19 is_stmt 0 view .LVU11
-  70 0022 0024     		movs	r4, #0
-  71              		.loc 1 63 5 view .LVU12
-  72 0024 07E0     		b	.L2
-  73              	.LVL1:
-  74              	.L3:
-  75              	.LBB3:
   64:Core/src/main.c ****     {
   65:Core/src/main.c ****         SPI1_TransmitByte(data[i]);
-  76              		.loc 1 65 9 is_stmt 1 view .LVU13
-  77              		.loc 1 65 31 is_stmt 0 view .LVU14
-  78 0026 04F11003 		add	r3, r4, #16
-  79 002a 6B44     		add	r3, sp, r3
-  80              		.loc 1 65 9 view .LVU15
-  81 002c 13F8100C 		ldrb	r0, [r3, #-16]	@ zero_extendqisi2
-  82 0030 FFF7FEFF 		bl	SPI1_TransmitByte
-  83              	.LVL2:
-  84              	.LBE3:
-  63:Core/src/main.c ****     {
-  85              		.loc 1 63 36 is_stmt 1 discriminator 3 view .LVU16
-  86 0034 0134     		adds	r4, r4, #1
-  87              	.LVL3:
-  88              	.L2:
-  63:Core/src/main.c ****     {
-  89              		.loc 1 63 28 discriminator 1 view .LVU17
-  90 0036 0F2C     		cmp	r4, #15
-  91 0038 F5D9     		bls	.L3
-  92              	.LBE2:
   66:Core/src/main.c ****     }
   67:Core/src/main.c **** 
   68:Core/src/main.c ****     /* Latch data: rising edge */
   69:Core/src/main.c **** 
   70:Core/src/main.c ****     GPIOG->BSRR = (1U << (10U + 16U));
-  93              		.loc 1 70 5 view .LVU18
-  94              		.loc 1 70 17 is_stmt 0 view .LVU19
-  95 003a 074B     		ldr	r3, .L5+4
-  96 003c 4FF08062 		mov	r2, #67108864
-  97 0040 9A61     		str	r2, [r3, #24]
-ARM GAS  /tmp/ccAigUat.s 			page 4
-
-
   71:Core/src/main.c ****     GPIOG->BSRR = (1U << 10U);
-  98              		.loc 1 71 5 is_stmt 1 view .LVU20
-  99              		.loc 1 71 17 is_stmt 0 view .LVU21
- 100 0042 4FF48062 		mov	r2, #1024
- 101 0046 9A61     		str	r2, [r3, #24]
   72:Core/src/main.c **** 
   73:Core/src/main.c ****     /* Enable display */
   74:Core/src/main.c **** 
   75:Core/src/main.c ****     GPIOG->BSRR = (1U << 11U);
- 102              		.loc 1 75 5 is_stmt 1 view .LVU22
- 103              		.loc 1 75 17 is_stmt 0 view .LVU23
- 104 0048 4FF40062 		mov	r2, #2048
- 105 004c 9A61     		str	r2, [r3, #24]
-  76:Core/src/main.c **** }...
- 106              		.loc 1 76 1 view .LVU24
- 107 004e 04B0     		add	sp, sp, #16
- 108              	.LCFI2:
- 109              		.cfi_def_cfa_offset 8
- 110              		@ sp needed
- 111 0050 10BD     		pop	{r4, pc}
- 112              	.LVL4:
- 113              	.L6:
- 114              		.loc 1 76 1 view .LVU25
- 115 0052 00BF     		.align	2
- 116              	.L5:
- 117 0054 00000000 		.word	.LC0
- 118 0058 00180240 		.word	1073879040
- 119              		.cfi_endproc
- 120              	.LFE142:
- 122              		.section	.text.main,"ax",%progbits
- 123              		.align	1
- 124              		.global	main
- 125              		.syntax unified
- 126              		.thumb
- 127              		.thumb_func
- 129              	main:
- 130              	.LFB141:
-   9:Core/src/main.c **** {
- 131              		.loc 1 9 1 is_stmt 1 view -0
- 132              		.cfi_startproc
- 133              		@ Volatile: function does not return.
- 134              		@ args = 0, pretend = 0, frame = 0
- 135              		@ frame_needed = 0, uses_anonymous_args = 0
- 136 0000 08B5     		push	{r3, lr}
- 137              	.LCFI3:
- 138              		.cfi_def_cfa_offset 8
- 139              		.cfi_offset 3, -8
- 140              		.cfi_offset 14, -4
-  10:Core/src/main.c ****     init_config.PSC = 216;
- 141              		.loc 1 10 5 view .LVU27
-  10:Core/src/main.c ****     init_config.PSC = 216;
- 142              		.loc 1 10 21 is_stmt 0 view .LVU28
- 143 0002 074B     		ldr	r3, .L10
- 144 0004 D822     		movs	r2, #216
- 145 0006 5A80     		strh	r2, [r3, #2]	@ movhi
-  11:Core/src/main.c ****     init_config.ARR = 1000;
- 146              		.loc 1 11 5 is_stmt 1 view .LVU29
-ARM GAS  /tmp/ccAigUat.s 			page 5
+  76:Core/src/main.c **** }
+  77:Core/src/main.c **** 
+  78:Core/src/main.c **** void SPI1_TransmitByte(uint8_t data)
+  79:Core/src/main.c **** {
+  29              		.loc 1 79 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  34              	.LVL0:
+  35              	.L2:
+  80:Core/src/main.c ****     /* Wait until transmit buffer is empty */
+ARM GAS  /tmp/ccHBxWiY.s 			page 3
 
 
-  11:Core/src/main.c ****     init_config.ARR = 1000;
- 147              		.loc 1 11 21 is_stmt 0 view .LVU30
- 148 0008 4FF47A72 		mov	r2, #1000
- 149 000c 1A80     		strh	r2, [r3]	@ movhi
-  12:Core/src/main.c ****     SystemClock_Config();
- 150              		.loc 1 12 5 is_stmt 1 view .LVU31
- 151 000e FFF7FEFF 		bl	SystemClock_Config
- 152              	.LVL5:
-  14:Core/src/main.c ****     GPIO_Config();
- 153              		.loc 1 14 5 view .LVU32
- 154 0012 FFF7FEFF 		bl	GPIO_Config
- 155              	.LVL6:
-  15:Core/src/main.c ****     SPI1_Init();
- 156              		.loc 1 15 5 view .LVU33
- 157 0016 FFF7FEFF 		bl	SPI1_Init
- 158              	.LVL7:
-  17:Core/src/main.c ****     P10_TestPixel();
- 159              		.loc 1 17 5 view .LVU34
- 160 001a FFF7FEFF 		bl	P10_TestPixel
- 161              	.LVL8:
- 162              	.L8:
+  81:Core/src/main.c **** 
+  82:Core/src/main.c ****     while (!(SPI1->SR & SPI_SR_TXE))
+  83:Core/src/main.c ****     {
+  84:Core/src/main.c ****     }
+  36              		.loc 1 84 5 view .LVU1
+  82:Core/src/main.c ****     {
+  37              		.loc 1 82 12 discriminator 1 view .LVU2
+  82:Core/src/main.c ****     {
+  38              		.loc 1 82 18 is_stmt 0 discriminator 1 view .LVU3
+  39 0000 064B     		ldr	r3, .L4
+  40 0002 9B68     		ldr	r3, [r3, #8]
+  82:Core/src/main.c ****     {
+  41              		.loc 1 82 12 discriminator 1 view .LVU4
+  42 0004 13F0020F 		tst	r3, #2
+  43 0008 FAD0     		beq	.L2
+  85:Core/src/main.c **** 
+  86:Core/src/main.c ****     /* Write data */
+  87:Core/src/main.c **** 
+  88:Core/src/main.c ****     *(__IO uint8_t *)&SPI1->DR = data;
+  44              		.loc 1 88 5 is_stmt 1 view .LVU5
+  45              		.loc 1 88 32 is_stmt 0 view .LVU6
+  46 000a 044B     		ldr	r3, .L4
+  47 000c 1873     		strb	r0, [r3, #12]
+  89:Core/src/main.c **** 
+  90:Core/src/main.c ****     /* Wait until transmission is complete */
+  91:Core/src/main.c **** 
+  92:Core/src/main.c ****     while (SPI1->SR & SPI_SR_BSY)
+  48              		.loc 1 92 5 is_stmt 1 view .LVU7
+  49              	.L3:
+  93:Core/src/main.c ****     {
+  94:Core/src/main.c ****     }
+  50              		.loc 1 94 5 view .LVU8
+  92:Core/src/main.c ****     {
+  51              		.loc 1 92 12 discriminator 1 view .LVU9
+  92:Core/src/main.c ****     {
+  52              		.loc 1 92 16 is_stmt 0 discriminator 1 view .LVU10
+  53 000e 034B     		ldr	r3, .L4
+  54 0010 9B68     		ldr	r3, [r3, #8]
+  92:Core/src/main.c ****     {
+  55              		.loc 1 92 12 discriminator 1 view .LVU11
+  56 0012 13F0800F 		tst	r3, #128
+  57 0016 FAD1     		bne	.L3
+  95:Core/src/main.c **** }...
+  58              		.loc 1 95 1 view .LVU12
+  59 0018 7047     		bx	lr
+  60              	.L5:
+  61 001a 00BF     		.align	2
+  62              	.L4:
+  63 001c 00300140 		.word	1073819648
+  64              		.cfi_endproc
+  65              	.LFE143:
+  67              		.section	.rodata.P10_TestPixel.str1.4,"aMS",%progbits,1
+  68              		.align	2
+  69              	.LC0:
+  70 0000 FFFFFF7F 		.ascii	"\377\377\377\177\177\377\277\337\377\377\377\377\377"
+  70      7FFFBFDF 
+  70      FFFFFFFF 
+ARM GAS  /tmp/ccHBxWiY.s 			page 4
+
+
+  70      FF
+  71 000d BFFFFF00 		.ascii	"\277\377\377\000"
+  72              		.section	.text.P10_TestPixel,"ax",%progbits
+  73              		.align	1
+  74              		.global	P10_TestPixel
+  75              		.syntax unified
+  76              		.thumb
+  77              		.thumb_func
+  79              	P10_TestPixel:
+  80              	.LFB142:
+  35:Core/src/main.c **** {
+  81              		.loc 1 35 1 is_stmt 1 view -0
+  82              		.cfi_startproc
+  83              		@ args = 0, pretend = 0, frame = 16
+  84              		@ frame_needed = 0, uses_anonymous_args = 0
+  85 0000 10B5     		push	{r4, lr}
+  86              	.LCFI0:
+  87              		.cfi_def_cfa_offset 8
+  88              		.cfi_offset 4, -8
+  89              		.cfi_offset 14, -4
+  90 0002 84B0     		sub	sp, sp, #16
+  91              	.LCFI1:
+  92              		.cfi_def_cfa_offset 24
+  44:Core/src/main.c ****     const uint8_t data[16] =
+  93              		.loc 1 44 5 view .LVU14
+  44:Core/src/main.c ****     const uint8_t data[16] =
+  94              		.loc 1 44 19 is_stmt 0 view .LVU15
+  95 0004 134B     		ldr	r3, .L10
+  96 0006 0FCB     		ldm	r3, {r0, r1, r2, r3}
+  97 0008 04AC     		add	r4, sp, #16
+  98 000a 04E90F00 		stmdb	r4, {r0, r1, r2, r3}
+  54:Core/src/main.c ****     GPIOG->BSRR = (1U << (11U + 16U));
+  99              		.loc 1 54 5 is_stmt 1 view .LVU16
+  54:Core/src/main.c ****     GPIOG->BSRR = (1U << (11U + 16U));
+ 100              		.loc 1 54 17 is_stmt 0 view .LVU17
+ 101 000e 124B     		ldr	r3, .L10+4
+ 102 0010 4FF00062 		mov	r2, #134217728
+ 103 0014 9A61     		str	r2, [r3, #24]
+  58:Core/src/main.c ****     GPIOG->BSRR = (1U << (12U + 16U));
+ 104              		.loc 1 58 5 is_stmt 1 view .LVU18
+  58:Core/src/main.c ****     GPIOG->BSRR = (1U << (12U + 16U));
+ 105              		.loc 1 58 17 is_stmt 0 view .LVU19
+ 106 0016 4FF08052 		mov	r2, #268435456
+ 107 001a 9A61     		str	r2, [r3, #24]
+  59:Core/src/main.c ****     GPIOG->BSRR = (1U << (13U + 16U));
+ 108              		.loc 1 59 5 is_stmt 1 view .LVU20
+  59:Core/src/main.c ****     GPIOG->BSRR = (1U << (13U + 16U));
+ 109              		.loc 1 59 17 is_stmt 0 view .LVU21
+ 110 001c 4FF00052 		mov	r2, #536870912
+ 111 0020 9A61     		str	r2, [r3, #24]
+  63:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
+ 112              		.loc 1 63 5 is_stmt 1 view .LVU22
+ 113              	.LBB2:
+  63:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
+ 114              		.loc 1 63 10 view .LVU23
+ 115              	.LVL1:
+  63:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
+ARM GAS  /tmp/ccHBxWiY.s 			page 5
+
+
+ 116              		.loc 1 63 19 is_stmt 0 view .LVU24
+ 117 0022 0024     		movs	r4, #0
+  63:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
+ 118              		.loc 1 63 5 view .LVU25
+ 119 0024 07E0     		b	.L7
+ 120              	.LVL2:
+ 121              	.L8:
+  65:Core/src/main.c ****         SPI1_TransmitByte(data[i]);
+ 122              		.loc 1 65 9 is_stmt 1 view .LVU26
+  65:Core/src/main.c ****         SPI1_TransmitByte(data[i]);
+ 123              		.loc 1 65 31 is_stmt 0 view .LVU27
+ 124 0026 04F11003 		add	r3, r4, #16
+ 125 002a 6B44     		add	r3, sp, r3
+  65:Core/src/main.c ****         SPI1_TransmitByte(data[i]);
+ 126              		.loc 1 65 9 view .LVU28
+ 127 002c 13F8100C 		ldrb	r0, [r3, #-16]	@ zero_extendqisi2
+ 128 0030 FFF7FEFF 		bl	SPI1_TransmitByte
+ 129              	.LVL3:
+  63:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
+ 130              		.loc 1 63 36 is_stmt 1 discriminator 3 view .LVU29
+ 131 0034 0134     		adds	r4, r4, #1
+ 132              	.LVL4:
+ 133              	.L7:
+  63:Core/src/main.c ****     for (uint32_t i = 0; i < 16U; i++)
+ 134              		.loc 1 63 28 discriminator 1 view .LVU30
+ 135 0036 0F2C     		cmp	r4, #15
+ 136 0038 F5D9     		bls	.L8
+ 137              	.LBE2:
+  70:Core/src/main.c ****     GPIOG->BSRR = (1U << (10U + 16U));
+ 138              		.loc 1 70 5 view .LVU31
+  70:Core/src/main.c ****     GPIOG->BSRR = (1U << (10U + 16U));
+ 139              		.loc 1 70 17 is_stmt 0 view .LVU32
+ 140 003a 074B     		ldr	r3, .L10+4
+ 141 003c 4FF08062 		mov	r2, #67108864
+ 142 0040 9A61     		str	r2, [r3, #24]
+  71:Core/src/main.c ****     GPIOG->BSRR = (1U << 10U);
+ 143              		.loc 1 71 5 is_stmt 1 view .LVU33
+  71:Core/src/main.c ****     GPIOG->BSRR = (1U << 10U);
+ 144              		.loc 1 71 17 is_stmt 0 view .LVU34
+ 145 0042 4FF48062 		mov	r2, #1024
+ 146 0046 9A61     		str	r2, [r3, #24]
+  75:Core/src/main.c ****     GPIOG->BSRR = (1U << 11U);
+ 147              		.loc 1 75 5 is_stmt 1 view .LVU35
+  75:Core/src/main.c ****     GPIOG->BSRR = (1U << 11U);
+ 148              		.loc 1 75 17 is_stmt 0 view .LVU36
+ 149 0048 4FF40062 		mov	r2, #2048
+ 150 004c 9A61     		str	r2, [r3, #24]
+  76:Core/src/main.c **** }
+ 151              		.loc 1 76 1 view .LVU37
+ 152 004e 04B0     		add	sp, sp, #16
+ 153              	.LCFI2:
+ 154              		.cfi_def_cfa_offset 8
+ 155              		@ sp needed
+ 156 0050 10BD     		pop	{r4, pc}
+ 157              	.LVL5:
+ 158              	.L11:
+  76:Core/src/main.c **** }
+ARM GAS  /tmp/ccHBxWiY.s 			page 6
+
+
+ 159              		.loc 1 76 1 view .LVU38
+ 160 0052 00BF     		.align	2
+ 161              	.L10:
+ 162 0054 00000000 		.word	.LC0
+ 163 0058 00180240 		.word	1073879040
+ 164              		.cfi_endproc
+ 165              	.LFE142:
+ 167              		.section	.text.main,"ax",%progbits
+ 168              		.align	1
+ 169              		.global	main
+ 170              		.syntax unified
+ 171              		.thumb
+ 172              		.thumb_func
+ 174              	main:
+ 175              	.LFB141:
+  10:Core/src/main.c **** {
+ 176              		.loc 1 10 1 is_stmt 1 view -0
+ 177              		.cfi_startproc
+ 178              		@ Volatile: function does not return.
+ 179              		@ args = 0, pretend = 0, frame = 0
+ 180              		@ frame_needed = 0, uses_anonymous_args = 0
+ 181 0000 08B5     		push	{r3, lr}
+ 182              	.LCFI3:
+ 183              		.cfi_def_cfa_offset 8
+ 184              		.cfi_offset 3, -8
+ 185              		.cfi_offset 14, -4
+  11:Core/src/main.c ****     init_config.PSC = 216;
+ 186              		.loc 1 11 5 view .LVU40
+  11:Core/src/main.c ****     init_config.PSC = 216;
+ 187              		.loc 1 11 21 is_stmt 0 view .LVU41
+ 188 0002 074B     		ldr	r3, .L15
+ 189 0004 D822     		movs	r2, #216
+ 190 0006 5A80     		strh	r2, [r3, #2]	@ movhi
+  12:Core/src/main.c ****     init_config.ARR = 1000;
+ 191              		.loc 1 12 5 is_stmt 1 view .LVU42
+  12:Core/src/main.c ****     init_config.ARR = 1000;
+ 192              		.loc 1 12 21 is_stmt 0 view .LVU43
+ 193 0008 4FF47A72 		mov	r2, #1000
+ 194 000c 1A80     		strh	r2, [r3]	@ movhi
+  13:Core/src/main.c ****     SystemClock_Config();
+ 195              		.loc 1 13 5 is_stmt 1 view .LVU44
+ 196 000e FFF7FEFF 		bl	SystemClock_Config
+ 197              	.LVL6:
+  15:Core/src/main.c ****     GPIO_Config();
+ 198              		.loc 1 15 5 view .LVU45
+ 199 0012 FFF7FEFF 		bl	GPIO_Config
+ 200              	.LVL7:
+  16:Core/src/main.c ****     SPI1_Init();
+ 201              		.loc 1 16 5 view .LVU46
+ 202 0016 FFF7FEFF 		bl	SPI1_Init
+ 203              	.LVL8:
+  18:Core/src/main.c ****     P10_TestPixel();
+ 204              		.loc 1 18 5 view .LVU47
+ 205 001a FFF7FEFF 		bl	P10_TestPixel
+ 206              	.LVL9:
+ 207              	.L13:
   20:Core/src/main.c ****     while (1)
- 163              		.loc 1 20 5 view .LVU35
+ARM GAS  /tmp/ccHBxWiY.s 			page 7
+
+
+ 208              		.loc 1 20 5 view .LVU48
   23:Core/src/main.c ****     }
- 164              		.loc 1 23 5 view .LVU36
+ 209              		.loc 1 23 5 view .LVU49
   20:Core/src/main.c ****     while (1)
- 165              		.loc 1 20 11 view .LVU37
- 166 001e FEE7     		b	.L8
- 167              	.L11:
- 168              		.align	2
- 169              	.L10:
- 170 0020 00000000 		.word	init_config
- 171              		.cfi_endproc
- 172              	.LFE141:
- 174              		.text
- 175              	.Letext0:
- 176              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
- 177              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
- 178              		.file 4 "Core/inc/app_data.h"
- 179              		.file 5 "Core/peripherials/inc/spi.h"
- 180              		.file 6 "Core/peripherials/inc/gpio.h"
- 181              		.file 7 "Core/peripherials/inc/rcc.h"
-ARM GAS  /tmp/ccAigUat.s 			page 6
+ 210              		.loc 1 20 11 view .LVU50
+ 211 001e FEE7     		b	.L13
+ 212              	.L16:
+ 213              		.align	2
+ 214              	.L15:
+ 215 0020 00000000 		.word	init_config
+ 216              		.cfi_endproc
+ 217              	.LFE141:
+ 219              		.text
+ 220              	.Letext0:
+ 221              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 222              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 223              		.file 4 "Core/inc/app_data.h"
+ 224              		.file 5 "Core/peripherials/inc/spi.h"
+ 225              		.file 6 "Core/peripherials/inc/gpio.h"
+ 226              		.file 7 "Core/peripherials/inc/rcc.h"
+ARM GAS  /tmp/ccHBxWiY.s 			page 8
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 main.c
-     /tmp/ccAigUat.s:21     .rodata.P10_TestPixel.str1.4:00000000 $d
-     /tmp/ccAigUat.s:26     .text.P10_TestPixel:00000000 $t
-     /tmp/ccAigUat.s:32     .text.P10_TestPixel:00000000 P10_TestPixel
-     /tmp/ccAigUat.s:117    .text.P10_TestPixel:00000054 $d
-     /tmp/ccAigUat.s:123    .text.main:00000000 $t
-     /tmp/ccAigUat.s:129    .text.main:00000000 main
-     /tmp/ccAigUat.s:170    .text.main:00000020 $d
+     /tmp/ccHBxWiY.s:21     .text.SPI1_TransmitByte:00000000 $t
+     /tmp/ccHBxWiY.s:27     .text.SPI1_TransmitByte:00000000 SPI1_TransmitByte
+     /tmp/ccHBxWiY.s:63     .text.SPI1_TransmitByte:0000001c $d
+     /tmp/ccHBxWiY.s:68     .rodata.P10_TestPixel.str1.4:00000000 $d
+     /tmp/ccHBxWiY.s:73     .text.P10_TestPixel:00000000 $t
+     /tmp/ccHBxWiY.s:79     .text.P10_TestPixel:00000000 P10_TestPixel
+     /tmp/ccHBxWiY.s:162    .text.P10_TestPixel:00000054 $d
+     /tmp/ccHBxWiY.s:168    .text.main:00000000 $t
+     /tmp/ccHBxWiY.s:174    .text.main:00000000 main
+     /tmp/ccHBxWiY.s:215    .text.main:00000020 $d
 
 UNDEFINED SYMBOLS
-SPI1_TransmitByte
 SystemClock_Config
 GPIO_Config
 SPI1_Init

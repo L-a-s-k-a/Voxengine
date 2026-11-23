@@ -1,0 +1,366 @@
+ARM GAS  /tmp/ccsTxzLh.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.arch armv7e-m
+   3              		.fpu fpv5-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"adc1.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/peripherials/src/adc1.c"
+  20              		.section	.text.ADC1_DMA_Config,"ax",%progbits
+  21              		.align	1
+  22              		.global	ADC1_DMA_Config
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	ADC1_DMA_Config:
+  28              	.LFB141:
+   1:Core/peripherials/src/adc1.c **** #include "adc1.h"
+   2:Core/peripherials/src/adc1.c **** #include "app_data.h"
+   3:Core/peripherials/src/adc1.c **** 
+   4:Core/peripherials/src/adc1.c **** /**
+   5:Core/peripherials/src/adc1.c ****  * @brief ADC1 + DMA2_Stream0.
+   6:Core/peripherials/src/adc1.c ****  *
+   7:Core/peripherials/src/adc1.c ****  * Идея: TIM1 генерирует TRGO на каждом Update event (500 Гц).
+   8:Core/peripherials/src/adc1.c ****  * По этому триггеру ADC1 сканирует два канала (0 и 3) и чер�
+   9:Core/peripherials/src/adc1.c ****  * складывает результаты в g_app.adc_buffer[0..1]. CPU не участвует
+  10:Core/peripherials/src/adc1.c ****  * В main из этого буфера делает mean_filter() и transform().
+  11:Core/peripherials/src/adc1.c ****  *
+  12:Core/peripherials/src/adc1.c ****  * Настройки ADC:
+  13:Core/peripherials/src/adc1.c ****  *  - 12 бит, right-aligned;
+  14:Core/peripherials/src/adc1.c ****  *  - scan mode (два канала в SQR);
+  15:Core/peripherials/src/adc1.c ****  *  - EXTSEL = TIM1_TRGO, rising.
+  16:Core/peripherials/src/adc1.c ****  *
+  17:Core/peripherials/src/adc1.c ****  * DMA: циклический режим, периферия -> память, 16 бит/16 бит,
+  18:Core/peripherials/src/adc1.c ****  */
+  19:Core/peripherials/src/adc1.c **** void ADC1_DMA_Config(void){
+  29              		.loc 1 19 27 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 8
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  34 0000 82B0     		sub	sp, sp, #8
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 8
+  20:Core/peripherials/src/adc1.c ****     RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+  37              		.loc 1 20 5 view .LVU1
+  38              		.loc 1 20 8 is_stmt 0 view .LVU2
+ARM GAS  /tmp/ccsTxzLh.s 			page 2
+
+
+  39 0002 3D4B     		ldr	r3, .L6
+  40 0004 5A6C     		ldr	r2, [r3, #68]
+  41              		.loc 1 20 18 view .LVU3
+  42 0006 42F48072 		orr	r2, r2, #256
+  43 000a 5A64     		str	r2, [r3, #68]
+  21:Core/peripherials/src/adc1.c ****     RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;         // DMA2
+  44              		.loc 1 21 5 is_stmt 1 view .LVU4
+  45              		.loc 1 21 8 is_stmt 0 view .LVU5
+  46 000c 1A6B     		ldr	r2, [r3, #48]
+  47              		.loc 1 21 18 view .LVU6
+  48 000e 42F48002 		orr	r2, r2, #4194304
+  49 0012 1A63     		str	r2, [r3, #48]
+  22:Core/peripherials/src/adc1.c ****     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;        // PA0, PA3
+  50              		.loc 1 22 5 is_stmt 1 view .LVU7
+  51              		.loc 1 22 8 is_stmt 0 view .LVU8
+  52 0014 1A6B     		ldr	r2, [r3, #48]
+  53              		.loc 1 22 18 view .LVU9
+  54 0016 42F00102 		orr	r2, r2, #1
+  55 001a 1A63     		str	r2, [r3, #48]
+  23:Core/peripherials/src/adc1.c **** 
+  24:Core/peripherials/src/adc1.c ****     /* PA0, PA3 — аналоговый режим (для ADC1_IN0 / ADC1_IN3). */
+  25:Core/peripherials/src/adc1.c ****     GPIOA->MODER |= GPIO_MODER_MODER0 | GPIO_MODER_MODER3; 
+  56              		.loc 1 25 5 is_stmt 1 view .LVU10
+  57              		.loc 1 25 10 is_stmt 0 view .LVU11
+  58 001c 374A     		ldr	r2, .L6+4
+  59 001e 1368     		ldr	r3, [r2]
+  60              		.loc 1 25 18 view .LVU12
+  61 0020 43F0C303 		orr	r3, r3, #195
+  62 0024 1360     		str	r3, [r2]
+  26:Core/peripherials/src/adc1.c **** 
+  27:Core/peripherials/src/adc1.c ****     /* Настройка DMA2 Stream0 для ADC1 */
+  28:Core/peripherials/src/adc1.c ****     DMA2_Stream0->CR &= ~DMA_SxCR_EN;           // Выключаем поток перед нас�
+  63              		.loc 1 28 5 is_stmt 1 view .LVU13
+  64              		.loc 1 28 17 is_stmt 0 view .LVU14
+  65 0026 02F5C842 		add	r2, r2, #25600
+  66 002a 1369     		ldr	r3, [r2, #16]
+  67              		.loc 1 28 22 view .LVU15
+  68 002c 23F00103 		bic	r3, r3, #1
+  69 0030 1361     		str	r3, [r2, #16]
+  29:Core/peripherials/src/adc1.c ****     while (DMA2_Stream0->CR & DMA_SxCR_EN) {}   // Ждём фактического выключе
+  70              		.loc 1 29 5 is_stmt 1 view .LVU16
+  71              	.L2:
+  72              		.loc 1 29 45 discriminator 1 view .LVU17
+  73              		.loc 1 29 12 discriminator 1 view .LVU18
+  74              		.loc 1 29 24 is_stmt 0 discriminator 1 view .LVU19
+  75 0032 334B     		ldr	r3, .L6+8
+  76 0034 1B69     		ldr	r3, [r3, #16]
+  77              		.loc 1 29 12 discriminator 1 view .LVU20
+  78 0036 13F0010F 		tst	r3, #1
+  79 003a FAD1     		bne	.L2
+  30:Core/peripherials/src/adc1.c **** 
+  31:Core/peripherials/src/adc1.c ****     DMA2_Stream0->CR = 0;                       // Сброс регистра
+  80              		.loc 1 31 5 is_stmt 1 view .LVU21
+  81              		.loc 1 31 22 is_stmt 0 view .LVU22
+  82 003c 304B     		ldr	r3, .L6+8
+  83 003e 0022     		movs	r2, #0
+  84 0040 1A61     		str	r2, [r3, #16]
+ARM GAS  /tmp/ccsTxzLh.s 			page 3
+
+
+  32:Core/peripherials/src/adc1.c ****     // Канал 0 (CHSEL = 0), направление периферия->память (DIR = 0),
+  33:Core/peripherials/src/adc1.c ****     // размер данных 16 бит (MSIZE = 01, PSIZE = 01),
+  34:Core/peripherials/src/adc1.c ****     // инкремент памяти (MINC = 1), циклический режим (CIRC = 1)
+  35:Core/peripherials/src/adc1.c ****     DMA2_Stream0->CR |= (0U << DMA_SxCR_CHSEL_Pos)   // Channel 0 для ADC1
+  85              		.loc 1 35 5 is_stmt 1 view .LVU23
+  86              		.loc 1 35 17 is_stmt 0 view .LVU24
+  87 0042 1969     		ldr	r1, [r3, #16]
+  88              		.loc 1 35 22 view .LVU25
+  89 0044 41F43451 		orr	r1, r1, #11520
+  90 0048 1961     		str	r1, [r3, #16]
+  36:Core/peripherials/src/adc1.c ****                      |  (0U << DMA_SxCR_DIR_Pos)     // Peripheral-to-memory
+  37:Core/peripherials/src/adc1.c ****                      |  (1U << DMA_SxCR_MSIZE_Pos)   // 16-bit memory
+  38:Core/peripherials/src/adc1.c ****                      |  (1U << DMA_SxCR_PSIZE_Pos)   // 16-bit peripheral
+  39:Core/peripherials/src/adc1.c ****                      |  (1U << DMA_SxCR_MINC_Pos)    // Memory increment
+  40:Core/peripherials/src/adc1.c ****                      |  (1U << DMA_SxCR_CIRC_Pos);   // Circular mode
+  41:Core/peripherials/src/adc1.c **** 
+  42:Core/peripherials/src/adc1.c ****     DMA2_Stream0->PAR  = (uint32_t)&(ADC1->DR);                             // Адрес реги�
+  91              		.loc 1 42 5 is_stmt 1 view .LVU26
+  92              		.loc 1 42 24 is_stmt 0 view .LVU27
+  93 004a 2E49     		ldr	r1, .L6+12
+  94 004c 9961     		str	r1, [r3, #24]
+  43:Core/peripherials/src/adc1.c ****     DMA2_Stream0->M0AR = (uint32_t)(uintptr_t)(void *)&g_app.adc_buffer[0]; // Адрес буфе�
+  95              		.loc 1 43 5 is_stmt 1 view .LVU28
+  96              		.loc 1 43 26 is_stmt 0 view .LVU29
+  97 004e 2E49     		ldr	r1, .L6+16
+  98              		.loc 1 43 24 view .LVU30
+  99 0050 D961     		str	r1, [r3, #28]
+  44:Core/peripherials/src/adc1.c ****     DMA2_Stream0->NDTR = ADC_BUF_LEN;                                       // Количество
+ 100              		.loc 1 44 5 is_stmt 1 view .LVU31
+ 101              		.loc 1 44 24 is_stmt 0 view .LVU32
+ 102 0052 0221     		movs	r1, #2
+ 103 0054 5961     		str	r1, [r3, #20]
+  45:Core/peripherials/src/adc1.c **** 
+  46:Core/peripherials/src/adc1.c ****     /* Сброс флагов потока перед запуском. */
+  47:Core/peripherials/src/adc1.c ****     DMA2->LIFCR = DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0 | DMA_LIFCR_CDMEIF0 | DMA_
+ 104              		.loc 1 47 5 is_stmt 1 view .LVU33
+ 105              		.loc 1 47 17 is_stmt 0 view .LVU34
+ 106 0056 3D21     		movs	r1, #61
+ 107 0058 9960     		str	r1, [r3, #8]
+  48:Core/peripherials/src/adc1.c ****     DMA2_Stream0->CR |= DMA_SxCR_EN;                 // Включаем поток
+ 108              		.loc 1 48 5 is_stmt 1 view .LVU35
+ 109              		.loc 1 48 17 is_stmt 0 view .LVU36
+ 110 005a 1969     		ldr	r1, [r3, #16]
+ 111              		.loc 1 48 22 view .LVU37
+ 112 005c 41F00101 		orr	r1, r1, #1
+ 113 0060 1961     		str	r1, [r3, #16]
+  49:Core/peripherials/src/adc1.c **** 
+  50:Core/peripherials/src/adc1.c ****     /* --- Тактирование ADC --- */
+  51:Core/peripherials/src/adc1.c ****     /* ADCPRE = 4: 108 / 4 = 27 МГц. Максимум для ADC на F7 — 36 МГц. */
+  52:Core/peripherials/src/adc1.c ****     ADC->CCR |= ADC_CCR_ADCPRE_0; 
+ 114              		.loc 1 52 5 is_stmt 1 view .LVU38
+ 115              		.loc 1 52 8 is_stmt 0 view .LVU39
+ 116 0062 2A49     		ldr	r1, .L6+20
+ 117 0064 4B68     		ldr	r3, [r1, #4]
+ 118              		.loc 1 52 14 view .LVU40
+ 119 0066 43F48033 		orr	r3, r3, #65536
+ 120 006a 4B60     		str	r3, [r1, #4]
+ARM GAS  /tmp/ccsTxzLh.s 			page 4
+
+
+  53:Core/peripherials/src/adc1.c ****     
+  54:Core/peripherials/src/adc1.c ****     /* --- ADC1 --- */
+  55:Core/peripherials/src/adc1.c ****     ADC1->CR1 = 0;
+ 121              		.loc 1 55 5 is_stmt 1 view .LVU41
+ 122              		.loc 1 55 15 is_stmt 0 view .LVU42
+ 123 006c 284B     		ldr	r3, .L6+24
+ 124 006e 5A60     		str	r2, [r3, #4]
+  56:Core/peripherials/src/adc1.c ****     ADC1->CR1 &= ~ADC_CR1_RES;              // Resolution 12 bit (RES = 00)
+ 125              		.loc 1 56 5 is_stmt 1 view .LVU43
+ 126              		.loc 1 56 9 is_stmt 0 view .LVU44
+ 127 0070 5968     		ldr	r1, [r3, #4]
+ 128              		.loc 1 56 15 view .LVU45
+ 129 0072 21F04071 		bic	r1, r1, #50331648
+ 130 0076 5960     		str	r1, [r3, #4]
+  57:Core/peripherials/src/adc1.c ****     ADC1->CR1 |= ADC_CR1_SCAN;              // Сканируем несколько каналов
+ 131              		.loc 1 57 5 is_stmt 1 view .LVU46
+ 132              		.loc 1 57 9 is_stmt 0 view .LVU47
+ 133 0078 5968     		ldr	r1, [r3, #4]
+ 134              		.loc 1 57 15 view .LVU48
+ 135 007a 41F48071 		orr	r1, r1, #256
+ 136 007e 5960     		str	r1, [r3, #4]
+  58:Core/peripherials/src/adc1.c **** 
+  59:Core/peripherials/src/adc1.c ****     ADC1->CR2 = 0;
+ 137              		.loc 1 59 5 is_stmt 1 view .LVU49
+ 138              		.loc 1 59 15 is_stmt 0 view .LVU50
+ 139 0080 9A60     		str	r2, [r3, #8]
+  60:Core/peripherials/src/adc1.c ****     ADC1->CR2 &= ~ADC_CR2_ALIGN;            // Data right alignment
+ 140              		.loc 1 60 5 is_stmt 1 view .LVU51
+ 141              		.loc 1 60 9 is_stmt 0 view .LVU52
+ 142 0082 9968     		ldr	r1, [r3, #8]
+ 143              		.loc 1 60 15 view .LVU53
+ 144 0084 21F40061 		bic	r1, r1, #2048
+ 145 0088 9960     		str	r1, [r3, #8]
+  61:Core/peripherials/src/adc1.c ****     ADC1->CR2 &= ~ADC_CR2_CONT;             // Отключение непрерывного ска
+ 146              		.loc 1 61 5 is_stmt 1 view .LVU54
+ 147              		.loc 1 61 9 is_stmt 0 view .LVU55
+ 148 008a 9968     		ldr	r1, [r3, #8]
+ 149              		.loc 1 61 15 view .LVU56
+ 150 008c 21F00201 		bic	r1, r1, #2
+ 151 0090 9960     		str	r1, [r3, #8]
+  62:Core/peripherials/src/adc1.c ****     ADC1->CR2 |= (9 << ADC_CR2_EXTSEL_Pos); // Начинать преобразования по �
+ 152              		.loc 1 62 5 is_stmt 1 view .LVU57
+ 153              		.loc 1 62 9 is_stmt 0 view .LVU58
+ 154 0092 9968     		ldr	r1, [r3, #8]
+ 155              		.loc 1 62 15 view .LVU59
+ 156 0094 41F01061 		orr	r1, r1, #150994944
+ 157 0098 9960     		str	r1, [r3, #8]
+  63:Core/peripherials/src/adc1.c ****     ADC1->CR2 |= ADC_CR2_EXTEN_0;           // Rising trigger on
+ 158              		.loc 1 63 5 is_stmt 1 view .LVU60
+ 159              		.loc 1 63 9 is_stmt 0 view .LVU61
+ 160 009a 9968     		ldr	r1, [r3, #8]
+ 161              		.loc 1 63 15 view .LVU62
+ 162 009c 41F08051 		orr	r1, r1, #268435456
+ 163 00a0 9960     		str	r1, [r3, #8]
+  64:Core/peripherials/src/adc1.c ****     ADC1->CR2 |= ADC_CR2_DMA;               // DMA mode enabled
+ 164              		.loc 1 64 5 is_stmt 1 view .LVU63
+ 165              		.loc 1 64 9 is_stmt 0 view .LVU64
+ARM GAS  /tmp/ccsTxzLh.s 			page 5
+
+
+ 166 00a2 9968     		ldr	r1, [r3, #8]
+ 167              		.loc 1 64 15 view .LVU65
+ 168 00a4 41F48071 		orr	r1, r1, #256
+ 169 00a8 9960     		str	r1, [r3, #8]
+  65:Core/peripherials/src/adc1.c ****     ADC1->CR2 |= ADC_CR2_DDS;               // DMA-запросы не снимаются межд�
+ 170              		.loc 1 65 5 is_stmt 1 view .LVU66
+ 171              		.loc 1 65 9 is_stmt 0 view .LVU67
+ 172 00aa 9968     		ldr	r1, [r3, #8]
+ 173              		.loc 1 65 15 view .LVU68
+ 174 00ac 41F40071 		orr	r1, r1, #512
+ 175 00b0 9960     		str	r1, [r3, #8]
+  66:Core/peripherials/src/adc1.c **** 
+  67:Core/peripherials/src/adc1.c ****     /* Время выборки 56 тактов (SMP=011) — компромисс точност�
+  68:Core/peripherials/src/adc1.c ****     ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP0_Pos); 
+ 176              		.loc 1 68 5 is_stmt 1 view .LVU69
+ 177              		.loc 1 68 9 is_stmt 0 view .LVU70
+ 178 00b2 1969     		ldr	r1, [r3, #16]
+ 179              		.loc 1 68 17 view .LVU71
+ 180 00b4 41F00301 		orr	r1, r1, #3
+ 181 00b8 1961     		str	r1, [r3, #16]
+  69:Core/peripherials/src/adc1.c ****     ADC1->SMPR2 |= (3 << ADC_SMPR2_SMP3_Pos);
+ 182              		.loc 1 69 5 is_stmt 1 view .LVU72
+ 183              		.loc 1 69 9 is_stmt 0 view .LVU73
+ 184 00ba 1969     		ldr	r1, [r3, #16]
+ 185              		.loc 1 69 17 view .LVU74
+ 186 00bc 41F4C061 		orr	r1, r1, #1536
+ 187 00c0 1961     		str	r1, [r3, #16]
+  70:Core/peripherials/src/adc1.c **** 
+  71:Core/peripherials/src/adc1.c ****     /* Две конверсии: SQ1=ch0, SQ2=ch3. */
+  72:Core/peripherials/src/adc1.c ****     ADC1->SQR1 = 0;
+ 188              		.loc 1 72 5 is_stmt 1 view .LVU75
+ 189              		.loc 1 72 16 is_stmt 0 view .LVU76
+ 190 00c2 DA62     		str	r2, [r3, #44]
+  73:Core/peripherials/src/adc1.c ****     ADC1->SQR1 |= ADC_SQR1_L_0;            // L = 1 -> 2 conversion
+ 191              		.loc 1 73 5 is_stmt 1 view .LVU77
+ 192              		.loc 1 73 9 is_stmt 0 view .LVU78
+ 193 00c4 D96A     		ldr	r1, [r3, #44]
+ 194              		.loc 1 73 16 view .LVU79
+ 195 00c6 41F48011 		orr	r1, r1, #1048576
+ 196 00ca D962     		str	r1, [r3, #44]
+  74:Core/peripherials/src/adc1.c ****     ADC1->SQR3 = 0;
+ 197              		.loc 1 74 5 is_stmt 1 view .LVU80
+ 198              		.loc 1 74 16 is_stmt 0 view .LVU81
+ 199 00cc 5A63     		str	r2, [r3, #52]
+  75:Core/peripherials/src/adc1.c ****     ADC1->SQR3 |= (0 << ADC_SQR3_SQ1_Pos); // SQ1 -> channel 0
+ 200              		.loc 1 75 5 is_stmt 1 view .LVU82
+ 201              		.loc 1 75 9 is_stmt 0 view .LVU83
+ 202 00ce 596B     		ldr	r1, [r3, #52]
+ 203              		.loc 1 75 16 view .LVU84
+ 204 00d0 5963     		str	r1, [r3, #52]
+  76:Core/peripherials/src/adc1.c ****     ADC1->SQR3 |= (3 << ADC_SQR3_SQ2_Pos); // SQ2 -> channel 3
+ 205              		.loc 1 76 5 is_stmt 1 view .LVU85
+ 206              		.loc 1 76 9 is_stmt 0 view .LVU86
+ 207 00d2 596B     		ldr	r1, [r3, #52]
+ 208              		.loc 1 76 16 view .LVU87
+ 209 00d4 41F06001 		orr	r1, r1, #96
+ 210 00d8 5963     		str	r1, [r3, #52]
+ARM GAS  /tmp/ccsTxzLh.s 			page 6
+
+
+  77:Core/peripherials/src/adc1.c **** 
+  78:Core/peripherials/src/adc1.c ****     ADC1->CR2 |= ADC_CR2_ADON;                  // ADC on without conversion
+ 211              		.loc 1 78 5 is_stmt 1 view .LVU88
+ 212              		.loc 1 78 9 is_stmt 0 view .LVU89
+ 213 00da 9968     		ldr	r1, [r3, #8]
+ 214              		.loc 1 78 15 view .LVU90
+ 215 00dc 41F00101 		orr	r1, r1, #1
+ 216 00e0 9960     		str	r1, [r3, #8]
+  79:Core/peripherials/src/adc1.c ****     for (volatile int i = 0; i < 1000; i++) {}  // tSTAB — пауза после ADON
+ 217              		.loc 1 79 5 is_stmt 1 view .LVU91
+ 218              	.LBB2:
+ 219              		.loc 1 79 10 view .LVU92
+ 220              		.loc 1 79 23 is_stmt 0 view .LVU93
+ 221 00e2 0192     		str	r2, [sp, #4]
+ 222              		.loc 1 79 5 view .LVU94
+ 223 00e4 02E0     		b	.L3
+ 224              	.L4:
+ 225              		.loc 1 79 46 is_stmt 1 discriminator 3 view .LVU95
+ 226              		.loc 1 79 41 discriminator 3 view .LVU96
+ 227 00e6 019B     		ldr	r3, [sp, #4]
+ 228 00e8 0133     		adds	r3, r3, #1
+ 229 00ea 0193     		str	r3, [sp, #4]
+ 230              	.L3:
+ 231              		.loc 1 79 32 discriminator 1 view .LVU97
+ 232 00ec 019B     		ldr	r3, [sp, #4]
+ 233 00ee B3F57A7F 		cmp	r3, #1000
+ 234 00f2 F8DB     		blt	.L4
+ 235              	.LBE2:
+  80:Core/peripherials/src/adc1.c **** }...
+ 236              		.loc 1 80 1 is_stmt 0 view .LVU98
+ 237 00f4 02B0     		add	sp, sp, #8
+ 238              	.LCFI1:
+ 239              		.cfi_def_cfa_offset 0
+ 240              		@ sp needed
+ 241 00f6 7047     		bx	lr
+ 242              	.L7:
+ 243              		.align	2
+ 244              	.L6:
+ 245 00f8 00380240 		.word	1073887232
+ 246 00fc 00000240 		.word	1073872896
+ 247 0100 00640240 		.word	1073898496
+ 248 0104 4C200140 		.word	1073815628
+ 249 0108 00000000 		.word	g_app
+ 250 010c 00230140 		.word	1073816320
+ 251 0110 00200140 		.word	1073815552
+ 252              		.cfi_endproc
+ 253              	.LFE141:
+ 255              		.text
+ 256              	.Letext0:
+ 257              		.file 2 "/usr/lib/gcc/arm-none-eabi/13.2.1/include/stdint.h"
+ 258              		.file 3 "CMSIS/Devices/STM32F7xx/Inc/STM32F756xx/stm32f756xx.h"
+ 259              		.file 4 "Core/inc/app_data.h"
+ARM GAS  /tmp/ccsTxzLh.s 			page 7
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 adc1.c
+     /tmp/ccsTxzLh.s:21     .text.ADC1_DMA_Config:00000000 $t
+     /tmp/ccsTxzLh.s:27     .text.ADC1_DMA_Config:00000000 ADC1_DMA_Config
+     /tmp/ccsTxzLh.s:245    .text.ADC1_DMA_Config:000000f8 $d
+
+UNDEFINED SYMBOLS
+g_app
