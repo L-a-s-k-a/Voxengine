@@ -63,14 +63,23 @@ endif
 # source
 ######################################
 # C sources
+PERIPHERIALS_C = \
+    Core/peripherials/adc1.c \
+    Core/peripherials/extic.c \
+    Core/peripherials/gpio.c \
+    Core/peripherials/rcc.c \
+    Core/peripherials/spi.c \
+    Core/peripherials/sys_tim.c \
+    Core/peripherials/tim1.c \
+    Core/peripherials/tim2.c \
+    Core/peripherials/tim3.c
+
 C_SOURCES =  \
 $(SYS) \
 Core/src/main.c \
-Core/src/init.c \
-Core/src/it_handlers.c \
 Core/src/app_data.c \
-Core/src/spi.c \
-Core/drivers/p10_hub12/p10_hub12.c \
+$(PERIPHERIALS_C) \
+Core/drivers/led_matrix/led_matrix.c \
 
 # ASM sources
 ASM_SOURCES =  \
@@ -129,6 +138,8 @@ C_INCLUDES =  \
 -I$(CMSIS_INC_UNIT) \
 -I$(CMSIS_INC) \
 -ICore/inc \
+-ICore/peripherials/inc \
+-ICore/drivers/led_matrix \
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections

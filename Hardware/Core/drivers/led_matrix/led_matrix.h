@@ -1,5 +1,6 @@
-#ifndef P10_HUB12_H
-#define P10_HUB12_H
+/*Led matrix P10 with HUB12 interface*/
+#ifndef LED_MATRIX_H
+#define LED_MATRIX_H
 
 #include <stdint.h>
 #include <stdbool.h>

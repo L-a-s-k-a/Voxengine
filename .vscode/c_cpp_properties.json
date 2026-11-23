@@ -26,7 +26,8 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/Core/inc",
+                "${workspaceFolder}/Hardware/Core/inc",
+                "${workspaceFolder}/Hardware/Core/peripherials/inc",
                 "/usr/lib/arm-none-eabi/include"
             ],
             "defines": [

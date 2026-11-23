@@ -20,7 +20,7 @@ void SPI1_Init(void){
 /*
  * SPI1:
  * PA5 -> SCK
- * PB5 -> MOSI
+ * PA7 -> MOSI
  *
  * SPI Mode 0
  * Master
@@ -55,9 +55,9 @@ static void SPI_DMA_Init(void)
 {
     RCC->AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 
-    LED_DMA_STREAM->CR &= ~DMA_SxCR_EN;
+    DMA_STREAM->CR &= ~DMA_SxCR_EN;
 
-    while (LED_DMA_STREAM->CR & DMA_SxCR_EN)
+    while (DMA_STREAM->CR & DMA_SxCR_EN)
     {
         /* Initialization only */
     }
@@ -69,13 +69,13 @@ static void SPI_DMA_Init(void)
         DMA_LIFCR_CDMEIF3 |
         DMA_LIFCR_CFEIF3;
 
-    LED_DMA_STREAM->PAR = (uint32_t)&SPI1->DR;
+    DMA_STREAM->PAR = (uint32_t)&SPI1->DR;
 
-    LED_DMA_STREAM->M0AR = (uint32_t)dma_buffer;
+    DMA_STREAM->M0AR = (uint32_t)dma_buffer;
 
-    LED_DMA_STREAM->NDTR = LED_ROW_BYTES;
+    DMA_STREAM->NDTR = LED_ROW_BYTES;
 
-    LED_DMA_STREAM->CR =
+    DMA_STREAM->CR =
         (3U << DMA_SxCR_CHSEL_Pos) |
         DMA_SxCR_DIR_0 |
         DMA_SxCR_MINC |
@@ -97,7 +97,7 @@ static void SPI_DMA_Init(void)
 
 void SPI_GPIO_Config(void){
         /* Enable GPIOA clock */
-    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN | RCC_AHB1ENR_GPIOBEN;
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
 
     /* 2. Configure PA5 and PA7 as Alternate Function */
     GPIOA->MODER &= ~(GPIO_MODER_MODER5_Msk | GPIO_MODER_MODER7_Msk);
@@ -106,9 +106,4 @@ void SPI_GPIO_Config(void){
     GPIOA->AFR[0] &= ~(GPIO_AFRL_AFRL5_Msk | GPIO_AFRL_AFRL7_Msk);
     GPIOA->AFR[0] |= (5U << GPIO_AFRL_AFRL5_Pos) |
                      (5U << GPIO_AFRL_AFRL7_Pos);
-    GPIOB->MODER &= ~GPIO_MODER_MODER5;
-    GPIOB->MODER |= (2U << GPIO_MODER_MODER5_Pos);
-    GPIOB->AFR[0] &= ~GPIO_AFRL_AFRL5_Msk;
-    GPIOB->AFR[0] |= (5U << GPIO_AFRL_AFRL5_Pos);
-
 }

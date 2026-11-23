@@ -1,5 +1,4 @@
 #include "main.h"
-#include "p10_hub12.h"
 
 void P10_TestPixel(void);
 
@@ -12,10 +11,11 @@ int main(void)
     init_config.ARR = 1000;
     SystemClock_Config();
     
+    GPIO_Config();
     SPI1_Init();
 
     P10_TestPixel();
-    HUB12_SetPixel(1, 1, true); // NADA CHECKNUT!!!
+    // HUB12_SetPixel(1, 1, true); // NADA CHECKNUT!!!
 
     while (1)
     {
@@ -25,11 +25,11 @@ int main(void)
 
 /*
 CLK	        PA5 (SPI1 SCK)
-R	        PB5 (SPI1 MOSI)
-SCLK(LAT)   PB0
-OE	        PB1
-A	        PB2
-B	        PB10
+R	        PA7 (SPI1 MOSI)
+SCLK(LAT)   PG10 Legasy PB0
+OE	        PG11 Legasy PB1
+A	        PG12 Legasy PB2
+B	        PG13 Legasy PB10
 */
 void P10_TestPixel(void)
 {
@@ -46,17 +46,17 @@ void P10_TestPixel(void)
         0xFF, 0xFF, 0xFF, 0x7F,
         0xFF, 0xFF, 0xBF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF,
-        0xFF, 0xFF, 0xFF, 0xFF
+        0xFF, 0xBF, 0xFF, 0xFF
     };
 
     /* Disable display during data transfer */
 
-    GPIOB->BSRR = (1U << (1U + 16U));
+    GPIOG->BSRR = (1U << (11U + 16U));
 
     /* Select scan address 00 */
 
-    GPIOB->BSRR = (1U << (2U + 16U));
-    GPIOB->BSRR = (1U << (10U + 16U));
+    GPIOG->BSRR = (1U << (12U + 16U));
+    GPIOG->BSRR = (1U << (13U + 16U));
 
     /* Send 128 bits */
 
@@ -67,10 +67,10 @@ void P10_TestPixel(void)
 
     /* Latch data: rising edge */
 
-    GPIOB->BSRR = (1U << (0U + 16U));
-    GPIOB->BSRR = (1U << 0U);
+    GPIOG->BSRR = (1U << (10U + 16U));
+    GPIOG->BSRR = (1U << 10U);
 
     /* Enable display */
 
-    GPIOB->BSRR = (1U << 1U);
+    GPIOG->BSRR = (1U << 11U);
 }

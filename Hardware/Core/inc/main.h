@@ -7,6 +7,7 @@
 
 #include "adc1.h"
 #include "exti.h"
+#include "gpio.h"
 #include "rcc.h"
 #include "spi.h"
 #include "sys_tim.h"
